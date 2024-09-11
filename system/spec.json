@@ -1,0 +1,1359 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Meigetsu ID",
+        "description": "Meigetsu ID",
+        "version": "1.0.0.0"
+    },
+    "components": {
+        "securitySchemes": {
+            "oauth2": {
+                "type": "oauth2",
+                "flows": {
+                    "authorizationCode": {
+                        "authorizationUrl": "https://idportal.meigetsu.jp/oauth2/auth",
+                        "tokenUrl": "https://idportal.meigetsu.jp/api/v2/auth/token",
+                        "refreshUrl": "https://idportal.meigetsu.jp/api/v2/auth/token",
+                        "scopes": {
+                            "supervisor": "スーパーバイザー。Meigetsu IDに対してフルコントロール権限を付与する（アカウント種別コードが0のユーザーのみ指定可能）",
+                            "user.read": "ユーザー情報の読み取り（個人情報を除く）",
+                            "user.write": "ユーザー情報の書き込み（制限付き／個人情報を除く）",
+                            "user.admin": "ユーザーアカウントの書き込み（無制限／個人情報を除く）",
+                            "mpim.read": "個人情報の読み取り",
+                            "mpim.write": "個人情報の書き込み",
+                            "application.read": "アプリケーションの読み取り",
+                            "application.write": "アプリケーションの作成・更新・削除",
+                            "disk.read": "アプリケーションストレージのデータ読み取り",
+                            "disk.write": "アプリケーションストレージのデータ読み取り、書き込み、削除",
+                            "openid": "【OpenID Connect】IDトークンを発行する"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "security": [
+        {
+            "oauth2": [
+                "supervisor",
+                "user.read",
+                "user.write",
+                "user.admin",
+                "mpim.read",
+                "mpim.write",
+                "application.read",
+                "application.write",
+                "disk.read",
+                "disk.write"
+            ]
+        }
+    ],
+    "servers": [
+        {
+            "url": "https://idportal.meigetsu.jp/api/v2",
+            "description": "Meigetsu IDのAPIエンドポイント"
+        }
+    ],
+    "paths": {
+        "/application": {
+            "post": {
+                "summary": "アプリケーション作成",
+                "description": "アプリケーションの作成を行う",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "application.write"]
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "description": "アプリケーションの名前",
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "description": "アプリケーションの説明",
+                                        "type": "string"
+                                    },
+                                    "callback_url": {
+                                        "description": "コールバックＵＲＬ",
+                                        "type": "string"
+                                    },
+                                    "privacy": {
+                                        "description": "プライバシーポリシーのＵＲＬ",
+                                        "type": "string"
+                                    },
+                                    "term": {
+                                        "description": "利用規約のＵＲＬ",
+                                        "type": "string"
+                                    },
+                                    "public": {
+                                        "description": "アプリケーションの種類をPublicにするか。falseの場合、Confidentialとなります。"
+                                    }
+                                },
+                                "required": ["name", "callback_url", "privacy", "public"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "作成成功"
+                    },
+                    "400": {
+                        "description": "情報に不足がある"
+                    }
+                }
+            },
+            "get": {
+                "summary": "アプリケーションの一覧取得",
+                "description": "自身が作成したアプリケーションの一覧を取得する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "application.read"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "アプリケーションの名前とクライアントＩＤを返す",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "applications": {
+                                            "description": "アプリケーションデータの配列。アプリケーションが無い場合は空の配列になる",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "description": "アプリケーションの名前",
+                                                        "type": "string"
+                                                    },
+                                                    "client_id": {
+                                                        "description": "アプリケーションのクライアントＩＤ",
+                                                        "type": "string"
+                                                    },
+                                                    "description": {
+                                                        "description": "アプリケーションの説明",
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "複数のアプリケーションの削除",
+                "description": "指定されたアプリケーションを全て削除する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "application.write"]
+                    }
+                ],
+                "requestBody": {
+                    "description": "アプリケーションのクライアントＩＤをカンマ区切りで列挙する",
+                    "content": {
+                        "text/csv": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "削除結果を返す",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "client_id": {
+                                                        "description": "アプリケーションのクライアントＩＤ",
+                                                        "type": "string"
+                                                    },
+                                                    "result": {
+                                                        "description": "削除結果",
+                                                        "type": "boolean"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            }
+        },
+        "/application/{ClientID}": {
+            "get": {
+                "summary": "アプリケーションの取得",
+                "description": "アプリケーションの情報を取得する",
+                "parameters": [
+                    {
+                        "name": "ClientID",
+                        "description": "アプリケーションのクライアントＩＤ",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "アプリケーションの情報を返す",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "description": "アプリケーションの名前",
+                                            "type": "string"
+                                        },
+                                        "description": {
+                                            "description": "アプリケーションの説明",
+                                            "type": "string"
+                                        },
+                                        "callback_url": {
+                                            "description": "コールバックＵＲＬ",
+                                            "type": "string"
+                                        },
+                                        "privacy": {
+                                            "description": "プライバシーポリシーのＵＲＬ",
+                                            "type": "string"
+                                        },
+                                        "term": {
+                                            "description": "利用規約のＵＲＬ",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "指定されたアプリケーションが存在しない"
+                    }
+                }
+            },
+            "patch": {
+                "summary": "アプリケーション更新",
+                "description": "アプリケーションの更新を行う",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "ClientID",
+                        "in": "path",
+                        "description": "アプリケーションのクライアントＩＤ",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "application.write"]
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "description": "アプリケーションの名前",
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "description": "アプリケーションの説明",
+                                        "type": "string"
+                                    },
+                                    "callback_url": {
+                                        "description": "コールバックＵＲＬ",
+                                        "type": "string"
+                                    },
+                                    "privacy": {
+                                        "description": "プライバシーポリシーのＵＲＬ",
+                                        "type": "string"
+                                    },
+                                    "term": {
+                                        "description": "利用規約のＵＲＬ",
+                                        "type": "string"
+                                    },
+                                    "regenerate_client_secret": {
+                                        "description": "クライアントシークレットキーの再生成を行うかどうか",
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": ["regenerate_client_secret"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "更新成功。regenerate_client_secretがfalseの場合、contentは空のオブジェクトとなる",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "client_secret": {
+                                            "description": "クライアントの新しいシークレットキー",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "情報に不足がある"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "アプリケーション削除",
+                "description": "アプリケーションの削除を行う",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "ClientID",
+                        "in": "path",
+                        "description": "アプリケーションのクライアントＩＤ",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "application.write"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "削除成功"
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    },
+                    "404": {
+                        "description": "指定されたアプリケーションが存在しない"
+                    }
+                }
+            }
+        },
+        "/auth": {
+            "post": {
+                "summary": "認証の初期化",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "client_id": {
+                                        "description": "アプリケーションのクライアントＩＤ",
+                                        "type": "string"
+                                    },
+                                    "client_secret": {
+                                        "description": "アプリケーションのクライアントシークレットキー",
+                                        "type": "string"
+                                    },
+                                    "scope": {
+                                        "description": "アクセストークンに持たせたいスコープ",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "callback_url": {
+                                        "description": "コールバック先",
+                                        "type": "string"
+                                    },
+                                    "code_challenge": {
+                                        "description": "OAuth2 PKCEの値",
+                                        "type": "string"
+                                    },
+                                    "code_challenge_method": {
+                                        "description": "OAuth2 PKCEのハッシュ値作成メソッド",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "client_id",
+                                    "client_secret",
+                                    "scopes",
+                                    "callback_url",
+                                    "code_challenge",
+                                    "code_challenge_method"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "初期化完了",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "description": "認証ＩＤ",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "登録された情報と照合できない"
+                    },
+                    "404": {
+                        "description": "OAuth2 PKCEのハッシュ値作成メソッドが非対応"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "サインアウト",
+                "description": "サインアウトし、アクセストークンとリフレッシュトークンを無効化する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "サインアウト成功"
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            }
+        },
+        "/auth/token": {
+            "post": {
+                "summary": "アクセストークンとリフレッシュトークンの発行",
+                "description": "アクセストークンとリフレッシュトークンの発行を行う",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "grant_type": {
+                                        "description": "認可タイプ。codeまたはrefresh_tokenを指定する",
+                                        "type": "string"
+                                    },
+                                    "code": {
+                                        "description": "認可コード。grant_typeがcodeの場合は必須"
+                                    },
+                                    "code_verify": {
+                                        "description": "PKCEのハッシュ値の元の値。grant_typeがcodeの場合は必須",
+                                        "type": "string"
+                                    },
+                                    "refresh_token": {
+                                        "description": "リフレッシュトークン。grant_typeがrefresh_tokenの場合は必須",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": ["auth_type"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "アクセストークンとリフレッシュトークンを発行する",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token_type": {
+                                            "description": "常にBearer",
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "access_token": {
+                                            "description": "アクセストークン",
+                                            "type": "string"
+                                        },
+                                        "refresh_token": {
+                                            "description": "リフレッシュトークン。発行しない指定している場合は無い"
+                                        },
+                                        "expires_at": {
+                                            "description": "アクセストークンとリフレッシュトークンの有効期限",
+                                            "type": "object",
+                                            "properties": {
+                                                "access_token": {
+                                                    "description": "アクセストークンの有効期限（UTC／ISO8601準拠）"
+                                                },
+                                                "refresh_token": {
+                                                    "description": "リフレッシュトークンの有効期限（UTC／ISO8601準拠）。発行しない指定している場合や有効期限を設定していない場合は無い"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "いずれかの情報にエラーがある"
+                    }
+                }
+            }
+        },
+        "/auth/signin/{AuthorizationID}": {
+            "post": {
+                "summary": "サインイン",
+                "description": "サインインを実行する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "supervisorのscopeを保有するアクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "AuthorizationID",
+                        "in": "path",
+                        "description": "認証初期化エンドポイントで発行された認証ＩＤ",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "5543281DFE2C42D29DB8ECE1C06371C8"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "description": "整理番号、ユーザーＩＤまたはメールアドレス",
+                                        "type": "string",
+                                        "example": "kamioda@mail.meigetsu.jp"
+                                    },
+                                    "password": {
+                                        "description": "パスワード",
+                                        "type": "string",
+                                        "example": "password01"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "OAuth2": ["supervisor"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "認証成功",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "description": "認可コード",
+                                            "example": "123456"
+                                        },
+                                        "callback_url": {
+                                            "type": "string",
+                                            "example": "https://idportal.meigetsu.jp/callback/meigetsuid"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "ＩＤまたはパスワードが違う/アクセストークンにスーパーバイザー権限が無い"
+                    },
+                    "403": {
+                        "description": "【scopeにmpim.read、mpim.writeのいずれか、または両方が含まれている場合】同一開発者の別アプリケーションに対して認証したユーザーのアクセストークンが発行されている（開発者のアカウントレベルが0の場合を除く）"
+                    },
+                    "404": {
+                        "description": "認証ＩＤが存在しない"
+                    }
+                }
+            },
+            "get": {
+                "summary": "認可情報の取得",
+                "description": "認可を要求するアプリケーションの情報および要求している認可項目（scope）を取得する",
+                "parameters": [
+                    {
+                        "name": "AuthorizationID",
+                        "in": "path",
+                        "description": "認証初期化エンドポイントで発行された認証ＩＤ",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "5543281DFE2C42D29DB8ECE1C06371C8"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "アプリケーションとscopeの情報を返す",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "description": "アプリケーションの名前",
+                                            "type": "string"
+                                        },
+                                        "developer": {
+                                            "description": "開発者の名前",
+                                            "type": "string"
+                                        },
+                                        "description": {
+                                            "description": "アプリケーションの説明",
+                                            "type": "string"
+                                        },
+                                        "scope": {
+                                            "description": "要求されているscopeの説明",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "privacy": {
+                                            "description": "プライバシーポリシーのＵＲＬ",
+                                            "type": "string"
+                                        },
+                                        "term": {
+                                            "description": "利用規約のＵＲＬ",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "認証ＩＤが存在しない"
+                    }
+                }
+            }
+        },
+        "/user": {
+            "post": {
+                "summary": "アカウント仮登録",
+                "description": "アカウントを仮登録する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "アクセストークン",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor"]
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "text/plain": {
+                            "schema": {
+                                "description": "メールアドレス",
+                                "type": "string",
+                                "example": "info@mail.meigetsu.jp"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "仮登録および本登録用メールアドレス送信成功"
+                    },
+                    "400": {
+                        "description": "アカウント仮登録にあたり、メールアドレスに不備がある（フォーマットエラーor使用済みメールアドレス）"
+                    },
+                    "401": {
+                        "description": "アクセストークンにスーパーバイザー権限が無い"
+                    }
+                }
+            },
+            "get": {
+                "summary": "アカウント情報取得",
+                "description": "自身のアカウントに登録されている情報を取得します（個人情報を除く）",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "contain_personal",
+                        "description": "レスポンスに個人情報を含めるかどうか。指定しない場合はfalse扱い（trueにする場合はアクセストークンにscope\"mpim.secure_read\"が必要）",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "example": false
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "user.read"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "アカウント情報を返す",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "description": "クライアントにリンクした仮想ID",
+                                            "type": "string",
+                                            "example": "3b7edc0f7dba4891904f1a38f30d4e70"
+                                        },
+                                        "user_id": {
+                                            "description": "ユーザーＩＤ",
+                                            "type": "string",
+                                            "example": "kamioda"
+                                        },
+                                        "mailaddress": {
+                                            "description": "メールアドレス",
+                                            "type": "string",
+                                            "example": "kamioda@mail.meigetsu.jp"
+                                        },
+                                        "account_type": {
+                                            "description": "アカウント種別",
+                                            "type": "integer",
+                                            "example": 4
+                                        },
+                                        "created_at": {
+                                            "description": "アカウント作成日時（UTC／ISO8601準拠）",
+                                            "type": "string"
+                                        },
+                                        "personality_classification": {
+                                            "description": "人格区分(0:個人、1:法人)",
+                                            "type": "integer",
+                                            "example": 0
+                                        },
+                                        "personal": {
+                                            "description": "個人情報（アカウントが個人であり、contain_personalがtrueかつアクセストークンがscope\"mpim.secure_read\"を持っている場合のみ）",
+                                            "type": "object",
+                                            "properties": {
+                                                "family_name": {
+                                                    "description": "名字",
+                                                    "type": "string"
+                                                },
+                                                "first_name": {
+                                                    "description": "名前",
+                                                    "type": "string"
+                                                },
+                                                "prefecture": {
+                                                    "description": "住所（都道府県）",
+                                                    "type": "string"
+                                                },
+                                                "city": {
+                                                    "description": "住所（市区町村）",
+                                                    "type": "string"
+                                                },
+                                                "address": {
+                                                    "description": "住所（市区町村より後ろの部分）",
+                                                    "type": "string"
+                                                },
+                                                "birthday": {
+                                                    "description": "生年月日",
+                                                    "type": "string"
+                                                },
+                                                "gender": {
+                                                    "description": "性別（0:男性、1:女性）",
+                                                    "type": "number",
+                                                    "example": 0
+                                                },
+                                                "check_level": {
+                                                    "description": "本人確認レベル（0:未申告、1:自己申告、2:簡易的な本人確認等を実施。3:厳格な本人確認等を実施、4:明月または明月の関連企業等の社員または役員）",
+                                                    "type": "number",
+                                                    "example": 0
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            },
+            "patch": {
+                "summary": "アカウントの更新リクエスト",
+                "description": "アカウントに登録された情報の更新のための本人確認を行うためのコードを記載したメールを送信する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "アクセストークン",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "user.write"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新用コードを記載したメール送信成功"
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "アカウントの削除リクエスト",
+                "description": "アカウントの削除を行うための本人確認を行うためのコードを記載したメールを送信する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "削除用コードを記載したメール送信成功"
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            }
+        },
+        "/user/{ConfirmID}": {
+            "post": {
+                "summary": "アカウントの本登録",
+                "description": "アカウントを本登録する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "アクセストークン",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "ConfirmID",
+                        "in": "path",
+                        "description": "本登録用コード",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "123456"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor"]
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "user_id": {
+                                        "description": "ユーザーＩＤ",
+                                        "type": "string",
+                                        "example": "kamioda"
+                                    },
+                                    "corp_number": {
+                                        "description": "法人番号または会社法人等番号。法人の場合は必須",
+                                        "type": "string",
+                                        "example": "4010404006753"
+                                    },
+                                    "name": {
+                                        "description": "ハンドルネーム。個人アカウントの場合は必須",
+                                        "type": "string",
+                                        "example": "神御田"
+                                    },
+                                    "password": {
+                                        "description": "パスワード",
+                                        "type": "string",
+                                        "example": "password01"
+                                    }
+                                },
+                                "required": ["user_id", "mailaddress", "password"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "本登録成功"
+                    },
+                    "400": {
+                        "description": "情報に不備がある"
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            },
+            "patch": {
+                "summary": "アカウントの更新",
+                "description": "アカウントに登録された情報の更新",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "description": "アクセストークン",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "ConfirmID",
+                        "in": "path",
+                        "description": "更新用コード",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "123456"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "user.write"]
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "user_id": {
+                                        "description": "ユーザーＩＤ",
+                                        "type": "string",
+                                        "example": "kamioda"
+                                    },
+                                    "name": {
+                                        "description": "ハンドルネーム（法人アカウントでは指定不可）",
+                                        "type": "string",
+                                        "example": "神御田"
+                                    },
+                                    "mailaddress": {
+                                        "description": "メールアドレス",
+                                        "type": "string",
+                                        "example": "kamioda@mail.meigetsu.jp"
+                                    },
+                                    "password": {
+                                        "description": "パスワード",
+                                        "type": "string",
+                                        "example": "password01"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "更新成功"
+                    },
+                    "400": {
+                        "description": "情報に不備がある"
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "アカウントの削除",
+                "description": "アカウントの削除",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "ConfirmID",
+                        "in": "path",
+                        "description": "削除用コード",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "123456"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "削除成功"
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            }
+        },
+        "/user/mpim/status": {
+            "get": {
+                "summary": "本人確認ステータス確認",
+                "description": "本人確認ステータスが自分が保有するレベルと合致しているか、または指定のレベルを満たしているかを確認する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "level",
+                        "in": "query",
+                        "description": "本人確認レベル（0:未申告、1:自己申告、2:簡易的な本人確認等を実施。3:厳格な本人確認等を実施、4:明月または明月の関連企業等の社員または役員）",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "compare_mode",
+                        "in": "query",
+                        "description": "本人確認レベルの照合モード。equal、not_equal、greater、greater_equal、less、less_equalのどれかを指定する。指定しない場合はequalとなる",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "mpim.read"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ステータスが指定した値と合致しているか、または指定のレベルを満たしているかを返す",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "result": {
+                                            "description": "ステータスが合致しているか、または指定のレベルを満たしているか",
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            }
+        },
+        "/user/mpim/age": {
+            "get": {
+                "summary": "年齢照合",
+                "description": "年齢が自身が保有する年齢と合致しているか、または指定の年齢を満たしているかを照合する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "age",
+                        "in": "query",
+                        "description": "年齢",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "compare_mode",
+                        "in": "query",
+                        "description": "年齢の照合モード。equal、not_equal、greater、greater_equal、less、less_equalのどれかを指定する。指定しない場合はequalとなる",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "mpim.read"]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "結果を返す",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "result": {
+                                            "description": "照合結果",
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            }
+        },
+        "/user/mpim/{ConfirmID}": {
+            "patch": {
+                "summary": "個人情報の編集",
+                "description": "個人情報を編集する",
+                "parameters": [
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "description": "アクセストークン",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "Bearer hgakjglbaviudafojgrfvdvjzdbnvjkbdcvhrbliabvaobgrjvfbd32qi45hgg0iqrhvbuo4"
+                        }
+                    },
+                    {
+                        "name": "ConfirmID",
+                        "in": "path",
+                        "description": "更新用コード",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "123456"
+                        }
+                    }
+                ],
+                "security": [
+                    {
+                        "OAuth2": ["supervisor", "mpim.write"]
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "family_name": {
+                                        "description": "名字",
+                                        "type": "string"
+                                    },
+                                    "first_name": {
+                                        "description": "名前",
+                                        "type": "string"
+                                    },
+                                    "prefecture": {
+                                        "description": "住所（都道府県）",
+                                        "type": "string"
+                                    },
+                                    "city": {
+                                        "description": "住所（市区町村）",
+                                        "type": "string"
+                                    },
+                                    "address": {
+                                        "description": "住所（市区町村より後ろの部分）",
+                                        "type": "string"
+                                    },
+                                    "birthday": {
+                                        "description": "生年月日",
+                                        "type": "string"
+                                    },
+                                    "gender": {
+                                        "description": "性別（0:男性、1:女性）",
+                                        "type": "number"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "編集成功"
+                    },
+                    "400": {
+                        "description": "情報に不備がある"
+                    },
+                    "401": {
+                        "description": "アクセストークンが無効"
+                    }
+                }
+            }
+        }
+    }
+}

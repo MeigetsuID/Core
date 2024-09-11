@@ -1,0 +1,14 @@
+{
+    "host": "mail73.conoha.ne.jp",
+    "port": 587,
+    "secure": false,
+    "requireTLS": false,
+    "tls": {
+        "rejectUnauthorized": false
+    },
+    "auth": {
+        "user": "no-reply@mail.meigetsu.jp",
+        "pass": "MeigetsuNoReplyMail-2024"
+    },
+    "from": "no-reply@mail.meigetsu.jp"
+}

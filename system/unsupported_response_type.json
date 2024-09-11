@@ -1,0 +1,5 @@
+{
+    "token": "Meigetsu ID is not supported OAuth 2.0 implicit flow.",
+    "password": "Meigetsu ID is not supported OAuth 2.0 resource owner password credentials flow.",
+    "client_credentials": "Meigetsu ID is not supported OAuth 2.0 client credentials flow."
+}

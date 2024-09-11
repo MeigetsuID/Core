@@ -1,0 +1,64 @@
+{
+    "scopes": [
+        {
+            "name": "supervisor",
+            "description": "Meigetsu IDで可能な全ての操作（個人情報の読み取り、書き込みを含む）",
+            "min_level": 0,
+            "allow_public": false
+        },
+        {
+            "name": "user.read",
+            "description": "ユーザー情報の読み取り（個人情報を除く）",
+            "min_level": 4,
+            "allow_public": true
+        },
+        {
+            "name": "user.write",
+            "description": "ユーザー情報の書き込み（制限付き／個人情報を除く）",
+            "min_level": 4,
+            "allow_public": false
+        },
+        {
+            "name": "mpim.read",
+            "description": "個人情報の照合",
+            "min_level": 2,
+            "allow_public": false
+        },
+        {
+            "name": "mpim.secure_read",
+            "description": "個人情報の取得",
+            "min_level": 1,
+            "allow_public": false
+        },
+        {
+            "name": "mpim.write",
+            "description": "個人情報の書き込み",
+            "min_level": 2,
+            "allow_public": false
+        },
+        {
+            "name": "application.read",
+            "description": "アプリケーションの読み取り",
+            "min_level": 4,
+            "allow_public": true
+        },
+        {
+            "name": "application.write",
+            "description": "アプリケーションの作成・更新・削除",
+            "min_level": 4,
+            "allow_public": false
+        },
+        {
+            "name": "openid",
+            "description": "IDトークンを発行",
+            "min_level": 4,
+            "allow_public": true
+        },
+        {
+            "name": "payment",
+            "description": "ムーンクリスタルの購入および使用",
+            "min_level": 0,
+            "allow_public": false
+        }
+    ]
+}
