@@ -2,6 +2,8 @@ import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import CreateID from '@meigetsuid/idgenerator';
 import IOManager from '@meigetsuid/iomanager';
 import { SystemIDPattern, VirtualIDPattern } from './Pattern';
+import { readFile, writeFile } from 'nodeeasyfileio';
+import { ToHash } from '@meigetsusoft/hash';
 
 export default class AccountManager {
     private CorpProfileGen: CorpProfileGenerator;
@@ -88,6 +90,7 @@ export default class AccountManager {
         if (!VirtualIDPattern.test(arg.id)) throw new Error('Invalid Virtual ID');
         const AccessToken = await this.AccessToken.CreateAccessToken(arg.id, arg.scopes);
         const RefreshToken = await this.RefreshToken.CreateRefreshToken(arg.id, arg.scopes);
+        writeFile(`./system/account/token/${ToHash(AccessToken.token, 'romeo')}`, RefreshToken.token);
         return {
             token_type: 'Bearer',
             access_token: AccessToken.token,
