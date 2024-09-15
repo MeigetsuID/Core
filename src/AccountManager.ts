@@ -1,6 +1,7 @@
 import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import CreateID from '@meigetsuid/idgenerator';
 import IOManager from '@meigetsuid/iomanager';
+import { SystemIDPattern, VirtualIDPattern } from './Pattern';
 
 export default class AccountManager {
     private CorpProfileGen: CorpProfileGenerator;
@@ -65,5 +66,36 @@ export default class AccountManager {
         account_type: number;
     }) {
         await this.CreateAccount(arg);
+    }
+    public async SignIn(ID: string, Password: string) {
+        return await this.Account.SignIn(ID, Password);
+    }
+    public async IssueToken(arg: { id: string; AppID?: string; scopes: string[] }): Promise<{
+        token_type: string;
+        access_token: string;
+        refresh_token: string;
+        expires_at: {
+            access_token: Date;
+            refresh_token: Date;
+        };
+    }> {
+        if (arg.AppID) {
+            if (!SystemIDPattern.test(arg.id)) throw new Error('Invalid System ID');
+            if (!SystemIDPattern.test(arg.AppID)) throw new Error('Invalid App ID');
+            const VirtualID = await this.VirtualID.GetVirtualID(arg.id, arg.AppID);
+            return this.IssueToken({ id: VirtualID, scopes: arg.scopes });
+        }
+        if (!VirtualIDPattern.test(arg.id)) throw new Error('Invalid Virtual ID');
+        const AccessToken = await this.AccessToken.CreateAccessToken(arg.id, arg.scopes);
+        const RefreshToken = await this.RefreshToken.CreateRefreshToken(arg.id, arg.scopes);
+        return {
+            token_type: 'Bearer',
+            access_token: AccessToken.token,
+            refresh_token: RefreshToken.token,
+            expires_at: {
+                access_token: AccessToken.expires_at,
+                refresh_token: RefreshToken.expires_at,
+            },
+        };
     }
 }
