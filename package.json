@@ -29,11 +29,19 @@
     "access": "restricted",
     "registry": "https://npm.pkg.github.com/"
   },
+  "dependencies": {
+    "@meigetsuid/corpprofilegen": "^2.1.0",
+    "@meigetsuid/idgenerator": "^2.1.0",
+    "@meigetsuid/iomanager": "^2.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^22.1.0",
     "@typescript-eslint/eslint-plugin": "^6.13.1",
     "@typescript-eslint/parser": "^6.13.1",
+    "dotenv-cli": "^7.4.2",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-jest": "^28.7.0",
