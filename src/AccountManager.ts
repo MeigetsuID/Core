@@ -101,4 +101,9 @@ export default class AccountManager {
             },
         };
     }
+    public async SignOut(AccessToken: string) {
+        const PairRefreshToken = readFile(`./system/account/token/${ToHash(AccessToken, 'romeo')}`);
+        await this.AccessToken.Revoke(AccessToken);
+        await this.RefreshToken.Revoke(PairRefreshToken);
+    }
 }
