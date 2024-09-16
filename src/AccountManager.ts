@@ -4,6 +4,8 @@ import IOManager from '@meigetsuid/iomanager';
 import { SystemIDPattern, VirtualIDPattern } from './Pattern';
 import { readFile, writeFile } from 'nodeeasyfileio';
 import { ToHash } from '@meigetsusoft/hash';
+import IORedis from 'ioredis';
+import { generate } from 'randomstring';
 
 export default class AccountManager {
     private CorpProfileGen: CorpProfileGenerator;
@@ -12,7 +14,8 @@ export default class AccountManager {
         private Account = new IOManager.Account(),
         private VirtualID = new IOManager.VirtualID(),
         private AccessToken = new IOManager.AccessToken('supervisor'),
-        private RefreshToken = new IOManager.RefreshToken()
+        private RefreshToken = new IOManager.RefreshToken(),
+        private Redis = new IORedis({ db: 0 })
     ) {
         this.CorpProfileGen = new CorpProfileGenerator(NTAAppKey);
     }
@@ -24,40 +27,54 @@ export default class AccountManager {
             this.RefreshToken[Symbol.asyncDispose](),
         ]);
     }
-    private async CreateAccount(arg: {
-        id: string;
-        user_id: string;
-        name: string;
-        mailaddress: string;
-        password: string;
-        account_type: number;
-    }) {
-        await this.Account.CreateAccount(arg);
+    private async CacheMailAddress(
+        arg: { mailaddress: string; id?: string },
+        expireSec: number = 300
+    ): Promise<{ id: string; expires_at: Date }> {
+        const CacheID = generate({ length: 8, charset: 'numeric' });
+        const Expire = new Date(Date.now() + expireSec * 1000);
+        if (await this.Redis.exists(CacheID)) return this.CacheMailAddress(arg);
+        await this.Redis.set(CacheID, JSON.stringify(arg), 'EXAT', Expire.getTime());
+        return { id: CacheID, expires_at: Expire };
     }
-    public async Create(
-        arg:
-            | {
-                  user_id: string;
-                  name: string;
-                  mailaddress: string;
-                  password: string;
-              }
-            | {
-                  user_id: string;
-                  corp_number: string;
-                  mailaddress: string;
-                  password: string;
-              }
+    private async ReadMailAddressFromCache(
+        CacheID: string
+    ): Promise<{ status: 404 } | { status: 200; body: { mailaddress: string; id?: string } }> {
+        const Record = await this.Redis.get(CacheID);
+        return Record
+            ? { status: 200, body: JSON.parse(Record) as { mailaddress: string; id?: string } }
+            : { status: 404 };
+    }
+    public async PreEntry(
+        mailaddress: string
+    ): Promise<{ status: number; body: string | { id: string; expires_at: Date } }> {
+        return (await this.Account.Available({ mailaddress: mailaddress }))
+            ? { status: 201, body: await this.CacheMailAddress({ mailaddress: mailaddress }) }
+            : { status: 400, body: 'このメールアドレスは既に使用されています' };
+    }
+    public async Entry(
+        PreEntryID: string,
+        profile:
+            | { corp_number: string; user_id: string; password: string }
+            | { name: string; user_id: string; password: string }
     ) {
-        await this.Account.CreateAccount(
-            'corp_number' in arg
-                ? await this.CorpProfileGen.Create(arg)
+        const UseMailAddressInfo = await this.ReadMailAddressFromCache(PreEntryID);
+        if (UseMailAddressInfo.status === 404 || UseMailAddressInfo.body.id) return { status: 404 };
+        if (!(await this.Account.Available({ user_id: profile.user_id })))
+            return { status: 400, body: 'このユーザーＩＤは使用できません' };
+        if ('corp_number' in profile && !(await this.Account.Available({ corp_number: profile.corp_number })))
+            return { status: 400, body: 'この法人のアカウントは既に登録されています。' };
+        const Parameter =
+            'corp_number' in profile
+                ? await this.CorpProfileGen.Create({ ...profile, mailaddress: UseMailAddressInfo.body.mailaddress })
                 : {
-                      ...arg,
-                      id: await CreateID(arg.user_id),
+                      ...profile,
+                      id: await CreateID(profile.user_id),
+                      mailaddress: UseMailAddressInfo.body.mailaddress,
                       account_type: 4,
-                  }
-        );
+                  };
+        await this.Account.CreateAccount(Parameter);
+        return { status: 201 };
     }
     public async CreateForce(arg: {
         id: string;
@@ -67,7 +84,7 @@ export default class AccountManager {
         password: string;
         account_type: number;
     }) {
-        await this.CreateAccount(arg);
+        await this.Account.CreateAccount(arg);
     }
     public async SignIn(ID: string, Password: string) {
         return await this.Account.SignIn(ID, Password);
@@ -107,9 +124,9 @@ export default class AccountManager {
         await this.RefreshToken.Revoke(PairRefreshToken);
     }
     public async GetByAccessToken(AccessToken: string) {
-        const SystemID = await this.AccessToken.Check(AccessToken, [ 'user.read' ], true);
-        if (!SystemID) return null;
-        return await this.Account.SGetAccount(SystemID);
+        const SystemID = await this.AccessToken.Check(AccessToken, ['user.read'], true);
+        if (!SystemID) return { status: 401 };
+        return { status: 200, body: await this.Account.SGetAccount(SystemID) };
     }
     public async GetByUserID(UserID: string) {
         return await this.Account.GetAccount(UserID);
