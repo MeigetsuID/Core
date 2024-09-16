@@ -106,4 +106,12 @@ export default class AccountManager {
         await this.AccessToken.Revoke(AccessToken);
         await this.RefreshToken.Revoke(PairRefreshToken);
     }
+    public async GetByAccessToken(AccessToken: string) {
+        const SystemID = await this.AccessToken.Check(AccessToken, [ 'user.read' ], true);
+        if (!SystemID) return null;
+        return await this.Account.SGetAccount(SystemID);
+    }
+    public async GetByUserID(UserID: string) {
+        return await this.Account.GetAccount(UserID);
+    }
 }
