@@ -165,4 +165,18 @@ export default class AccountManager {
         const Result = await this.Account.GetAccount(UserID);
         return Result ? { status: 200, body: Result } : { status: 404 };
     }
+    public async Update(AccessToken: string, newProfile: Partial<{ user_id: string, name: string; mailaddress: string, password: string }>) {
+        const SystemID = await this.AccessToken.Check(AccessToken, ['user.write'], true);
+        if (!SystemID) return { status: 401 };
+        if (newProfile.mailaddress) {
+            const ChacheID = await this.CacheMailAddress({ mailaddress: newProfile.mailaddress, id: SystemID });
+            return { status: 200, body: ChacheID };
+        }
+        else {
+            const AccountProfile = await this.Account.SGetAccount(SystemID);
+            if (!AccountProfile || AccountProfile.account_type % 2 === 0 || AccountProfile.account_type === 0) return { status: 404 };
+            await this.Account.UpdateAccount(SystemID, newProfile);
+            return { status: 200 };
+        }
+    }
 }
