@@ -7,10 +7,10 @@ import { ToHash } from '@meigetsusoft/hash';
 import IORedis from 'ioredis';
 import { generate } from 'randomstring';
 import { CreateIDToken } from './IDToken';
-import AgeRateJson from '../system/age_rate.json' assert { type: 'json' };
 
 export default class AccountManager {
     private CorpProfileGen: CorpProfileGenerator;
+    private static readonly AgeRate = JSON.parse(readFile('./system/age_rate.json')) as { age_rates: { min: number; max?: number; rate: string }[] };
     constructor(
         NTAAppKey: string,
         private Account = new IOManager.Account(),
@@ -134,7 +134,7 @@ export default class AccountManager {
                     ? await fetch('https://localhost:7900/profile/' + VIDInfo.id)
                           .then(res => res.json())
                           .then(profile => {
-                              const Target = AgeRateJson.age_rates.find(
+                              const Target = AccountManager.AgeRate.age_rates.find(
                                   rate => rate.min <= profile.age && (rate.max ? rate.max >= profile.age : true)
                               );
                               return Target ? Target.rate : 'N';
