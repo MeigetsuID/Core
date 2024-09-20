@@ -153,13 +153,16 @@ export default class AccountManager {
         const PairRefreshToken = readFile(`./system/account/token/${ToHash(AccessToken, 'romeo')}`);
         await this.AccessToken.Revoke(AccessToken);
         await this.RefreshToken.Revoke(PairRefreshToken);
+        return { status: 200 };
     }
     public async GetByAccessToken(AccessToken: string) {
         const SystemID = await this.AccessToken.Check(AccessToken, ['user.read'], true);
         if (!SystemID) return { status: 401 };
-        return { status: 200, body: await this.Account.SGetAccount(SystemID) };
+        const AccountInfo = await this.Account.SGetAccount(SystemID);
+        return AccountInfo ? { status: 200, body: AccountInfo } : { status: 404 };
     }
     public async GetByUserID(UserID: string) {
-        return await this.Account.GetAccount(UserID);
+        const Result = await this.Account.GetAccount(UserID);
+        return Result ? { status: 200, body: Result } : { status: 404 };
     }
 }
