@@ -126,14 +126,17 @@ export default class AccountManager {
             const VIDInfo = await this.VirtualID.GetLinkedInformation(arg.id);
             /* v8 ignore next */
             if (!VIDInfo) throw new Error('Virtual ID is not found');
-            const AgeRate = VIDInfo.account_type % 2 === 0 && VIDInfo.account_type !== 0
-                ? await fetch('https://localhost:7900/profile/' + VIDInfo.id)
-                    .then(res => res.json())
-                    .then(profile => {
-                        const Target = AgeRateJson.age_rates.find(rate => rate.min <= profile.age && (rate.max ? rate.max >= profile.age : true));
-                        return Target ? Target.rate : 'N';
-                    })
-                : 'N'
+            const AgeRate =
+                VIDInfo.account_type % 2 === 0 && VIDInfo.account_type !== 0
+                    ? await fetch('https://localhost:7900/profile/' + VIDInfo.id)
+                          .then(res => res.json())
+                          .then(profile => {
+                              const Target = AgeRateJson.age_rates.find(
+                                  rate => rate.min <= profile.age && (rate.max ? rate.max >= profile.age : true)
+                              );
+                              return Target ? Target.rate : 'N';
+                          })
+                    : 'N';
             const IDToken = CreateIDToken({
                 virtual_id: arg.id,
                 app_id: VIDInfo.app,
@@ -142,7 +145,7 @@ export default class AccountManager {
                 mailaddress: VIDInfo.mailaddress,
                 account_type: VIDInfo.account_type,
                 issue_at: IssueDate,
-                age_rate: AgeRate
+                age_rate: AgeRate,
             });
             Ret['id_token'] = IDToken;
             Ret['expires_at']['id_token'] = new Date(IssueDate.getTime() + 180 * 1000);
@@ -165,16 +168,19 @@ export default class AccountManager {
         const Result = await this.Account.GetAccount(UserID);
         return Result ? { status: 200, body: Result } : { status: 404 };
     }
-    public async Update(AccessToken: string, newProfile: Partial<{ user_id: string, name: string; mailaddress: string, password: string }>) {
+    public async Update(
+        AccessToken: string,
+        newProfile: Partial<{ user_id: string; name: string; mailaddress: string; password: string }>
+    ) {
         const SystemID = await this.AccessToken.Check(AccessToken, ['user.write'], true);
         if (!SystemID) return { status: 401 };
         if (newProfile.mailaddress) {
             const ChacheID = await this.CacheMailAddress({ mailaddress: newProfile.mailaddress, id: SystemID });
             return { status: 200, body: ChacheID };
-        }
-        else {
+        } else {
             const AccountProfile = await this.Account.SGetAccount(SystemID);
-            if (!AccountProfile || AccountProfile.account_type % 2 === 0 || AccountProfile.account_type === 0) return { status: 404 };
+            if (!AccountProfile || AccountProfile.account_type % 2 === 0 || AccountProfile.account_type === 0)
+                return { status: 404 };
             await this.Account.UpdateAccount(SystemID, newProfile);
             return { status: 200 };
         }

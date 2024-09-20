@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { readFile } from 'nodeeasyfileio';
 
 describe('CreateIDToken', () => {
-    it ('same/contain expires_sec', () => {
+    it('same/contain expires_sec', () => {
         const arg = {
             virtual_id: 'vid-' + uuidv4().replace(/-/g, ''),
             app_id: 'app-' + uuidv4().replace(/-/g, ''),
@@ -32,7 +32,7 @@ describe('CreateIDToken', () => {
         };
         expect(CreateIDToken(arg)).toBe(sign(payload, readFile('./system/openid/private.key'), { algorithm: 'RS256' }));
     });
-    it ('same/not contain expires_sec', () => {
+    it('same/not contain expires_sec', () => {
         const arg = {
             virtual_id: 'vid-' + uuidv4().replace(/-/g, ''),
             app_id: 'app-' + uuidv4().replace(/-/g, ''),
@@ -57,9 +57,13 @@ describe('CreateIDToken', () => {
             nonce: arg.nonce,
             age: arg.age_rate,
         };
-        expect(CreateIDToken(arg)).toBe(sign({ ...payload, exp: payload.iat + 180000 }, readFile('./system/openid/private.key'), { algorithm: 'RS256' }));
+        expect(CreateIDToken(arg)).toBe(
+            sign({ ...payload, exp: payload.iat + 180000 }, readFile('./system/openid/private.key'), {
+                algorithm: 'RS256',
+            })
+        );
     });
-    it ('verify', () => {
+    it('verify', () => {
         const arg = {
             virtual_id: 'vid-' + uuidv4().replace(/-/g, ''),
             app_id: 'app-' + uuidv4().replace(/-/g, ''),
