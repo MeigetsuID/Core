@@ -104,9 +104,10 @@ export default class AccountManager {
             const VirtualID = await this.VirtualID.GetVirtualID(arg.id, arg.AppID);
             return this.IssueToken({ id: VirtualID, scopes: arg.scopes });
         }
+        const IssueDate = new Date();
         if (!VirtualIDPattern.test(arg.id)) throw new Error('Invalid Virtual ID');
-        const AccessToken = await this.AccessToken.CreateAccessToken(arg.id, arg.scopes);
-        const RefreshToken = await this.RefreshToken.CreateRefreshToken(arg.id, arg.scopes);
+        const AccessToken = await this.AccessToken.CreateAccessToken(arg.id, arg.scopes, IssueDate);
+        const RefreshToken = await this.RefreshToken.CreateRefreshToken(arg.id, arg.scopes, IssueDate);
         writeFile(`./system/account/token/${ToHash(AccessToken.token, 'romeo')}`, RefreshToken.token);
         return {
             token_type: 'Bearer',
