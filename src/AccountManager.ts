@@ -6,6 +6,8 @@ import { readFile, writeFile } from 'nodeeasyfileio';
 import { ToHash } from '@meigetsusoft/hash';
 import IORedis from 'ioredis';
 import { generate } from 'randomstring';
+import { CreateIDToken } from './IDToken';
+import AgeRateJson from '../system/age_rate.json' assert { type: 'json' };
 
 export default class AccountManager {
     private CorpProfileGen: CorpProfileGenerator;
@@ -93,9 +95,11 @@ export default class AccountManager {
         token_type: string;
         access_token: string;
         refresh_token: string;
+        id_token?: string;
         expires_at: {
             access_token: Date;
             refresh_token: Date;
+            id_token?: Date;
         };
     }> {
         if (arg.AppID) {
@@ -109,7 +113,7 @@ export default class AccountManager {
         const AccessToken = await this.AccessToken.CreateAccessToken(arg.id, arg.scopes, IssueDate);
         const RefreshToken = await this.RefreshToken.CreateRefreshToken(arg.id, arg.scopes, IssueDate);
         writeFile(`./system/account/token/${ToHash(AccessToken.token, 'romeo')}`, RefreshToken.token);
-        return {
+        const Ret = {
             token_type: 'Bearer',
             access_token: AccessToken.token,
             refresh_token: RefreshToken.token,
@@ -118,6 +122,32 @@ export default class AccountManager {
                 refresh_token: RefreshToken.expires_at,
             },
         };
+        if (arg.scopes.includes('openid')) {
+            const VIDInfo = await this.VirtualID.GetLinkedInformation(arg.id);
+            /* v8 ignore next */
+            if (!VIDInfo) throw new Error('Virtual ID is not found');
+            const AgeRate = VIDInfo.account_type % 2 === 0 && VIDInfo.account_type !== 0
+                ? await fetch('https://localhost:7900/profile/' + VIDInfo.id)
+                    .then(res => res.json())
+                    .then(profile => {
+                        const Target = AgeRateJson.age_rates.find(rate => rate.min <= profile.age && (rate.max ? rate.max >= profile.age : true));
+                        return Target ? Target.rate : 'N';
+                    })
+                : 'N'
+            const IDToken = CreateIDToken({
+                virtual_id: arg.id,
+                app_id: VIDInfo.app,
+                user_id: VIDInfo.user_id,
+                name: VIDInfo.name,
+                mailaddress: VIDInfo.mailaddress,
+                account_type: VIDInfo.account_type,
+                issue_at: IssueDate,
+                age_rate: AgeRate
+            });
+            Ret['id_token'] = IDToken;
+            Ret['expires_at']['id_token'] = new Date(IssueDate.getTime() + 180 * 1000);
+        }
+        return Ret;
     }
     public async SignOut(AccessToken: string) {
         const PairRefreshToken = readFile(`./system/account/token/${ToHash(AccessToken, 'romeo')}`);
