@@ -188,6 +188,13 @@ export default class AccountManager {
             return { status: 200 };
         }
     }
+    public async UpdateMailAddress(CacheID: string) {
+        const UseMailAddressInfo = await this.ReadMailAddressFromCache(CacheID);
+        if (UseMailAddressInfo.status === 404 || !UseMailAddressInfo.body.id) return { status: 404 };
+        await this.Account.UpdateAccount(UseMailAddressInfo.body.id, { mailaddress: UseMailAddressInfo.body.mailaddress });
+        await this.Redis.del(CacheID);
+        return { status: 200 };
+    }
     public async Delete(AccessToken: string) {
         const SystemID = await this.AccessToken.Check(AccessToken, ['user.write'], true);
         if (!SystemID) return { status: 401 };
