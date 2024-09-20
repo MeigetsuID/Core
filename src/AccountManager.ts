@@ -78,6 +78,7 @@ export default class AccountManager {
                       account_type: 4,
                   };
         await this.Account.CreateAccount(Parameter);
+        await this.Redis.del(PreEntryID);
         return { status: 201 };
     }
     public async CreateForce(arg: {
