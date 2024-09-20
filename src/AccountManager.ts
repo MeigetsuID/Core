@@ -17,6 +17,7 @@ export default class AccountManager {
         private VirtualID = new IOManager.VirtualID(),
         private AccessToken = new IOManager.AccessToken('supervisor'),
         private RefreshToken = new IOManager.RefreshToken(),
+        private Application = new IOManager.Application(),
         private Redis = new IORedis({ db: 0 })
     ) {
         this.CorpProfileGen = new CorpProfileGenerator(NTAAppKey);
@@ -184,5 +185,18 @@ export default class AccountManager {
             await this.Account.UpdateAccount(SystemID, newProfile);
             return { status: 200 };
         }
+    }
+    public async Delete(AccessToken: string) {
+        const SystemID = await this.AccessToken.Check(AccessToken, ['user.write'], true);
+        if (!SystemID) return { status: 401 };
+        const RefreshToken = readFile(`./system/account/token/${ToHash(AccessToken, 'romeo')}`);
+        const Promises = [
+            this.AccessToken.Revoke(AccessToken),
+            this.RefreshToken.Revoke(RefreshToken),
+            this.VirtualID.DeleteAccount(SystemID),
+            this.Application.DeleteApps(SystemID),
+            this.Account.DeleteAccount(SystemID),
+        ];
+        return await Promise.all(Promises).then(results => ({ status: results.every(result => result) ? 200 : 500 }));
     }
 }
