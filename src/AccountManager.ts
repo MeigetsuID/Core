@@ -177,8 +177,8 @@ export default class AccountManager {
         const SystemID = await this.AccessToken.Check(AccessToken, ['user.write'], true);
         if (!SystemID) return { status: 401 };
         if (newProfile.mailaddress) {
-            const ChacheID = await this.CacheMailAddress({ mailaddress: newProfile.mailaddress, id: SystemID });
-            return { status: 200, body: ChacheID };
+            const CacheInfo = await this.CacheMailAddress({ mailaddress: newProfile.mailaddress, id: SystemID });
+            return { status: 200, body: CacheInfo };
         } else {
             const AccountProfile = await this.Account.SGetAccount(SystemID);
             if (!AccountProfile || AccountProfile.account_type % 2 === 0 || AccountProfile.account_type === 0)
