@@ -26,6 +26,7 @@ export default class AccountManager {
     [Symbol.asyncDispose]() {
         return Promise.all([
             this.Account[Symbol.asyncDispose](),
+            this.Application[Symbol.asyncDispose](),
             this.VirtualID[Symbol.asyncDispose](),
             this.AccessToken[Symbol.asyncDispose](),
             this.RefreshToken[Symbol.asyncDispose](),
