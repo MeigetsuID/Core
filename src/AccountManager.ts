@@ -154,8 +154,18 @@ export default class AccountManager {
         }
         const IssueDate = new Date();
         if (!VirtualIDPattern.test(arg.id)) throw new Error('Invalid Virtual ID');
-        const AccessToken = await this.AccessToken.CreateAccessToken(arg.id, arg.scopes, IssueDate, arg.expires_min.access_token);
-        const RefreshToken = await this.RefreshToken.CreateRefreshToken(arg.id, arg.scopes, IssueDate, arg.expires_min.refresh_token);
+        const AccessToken = await this.AccessToken.CreateAccessToken(
+            arg.id,
+            arg.scopes,
+            IssueDate,
+            arg.expires_min.access_token
+        );
+        const RefreshToken = await this.RefreshToken.CreateRefreshToken(
+            arg.id,
+            arg.scopes,
+            IssueDate,
+            arg.expires_min.refresh_token
+        );
         writeFile(`./system/account/token/${ToHash(AccessToken.token, 'romeo')}`, RefreshToken.token);
         const Ret = {
             token_type: 'Bearer',
