@@ -95,7 +95,12 @@ export default class AccountManager {
     public async SignIn(ID: string, Password: string) {
         return await this.Account.SignIn(ID, Password);
     }
-    public async IssueToken(arg: { id: string; app_id?: string; scopes: string[] }): Promise<{
+    public async IssueToken(arg: {
+        id: string;
+        app_id?: string;
+        scopes: string[];
+        expires_min?: { access_token?: number; refresh_token?: number };
+    }): Promise<{
         token_type: string;
         access_token: string;
         refresh_token: string;
@@ -106,16 +111,37 @@ export default class AccountManager {
             id_token?: Date;
         };
     }> {
+        if (!arg.expires_min)
+            return this.IssueToken({
+                id: arg.id,
+                app_id: arg.app_id,
+                scopes: arg.scopes,
+                expires_min: { access_token: 180, refresh_token: 10080 },
+            });
+        if (!arg.expires_min.access_token)
+            return this.IssueToken({
+                id: arg.id,
+                app_id: arg.app_id,
+                scopes: arg.scopes,
+                expires_min: { access_token: 180, refresh_token: arg.expires_min.refresh_token },
+            });
+        if (!arg.expires_min.refresh_token)
+            return this.IssueToken({
+                id: arg.id,
+                app_id: arg.app_id,
+                scopes: arg.scopes,
+                expires_min: { access_token: arg.expires_min.access_token, refresh_token: 10080 },
+            });
         if (arg.app_id) {
             if (!SystemIDPattern.test(arg.id)) throw new Error('Invalid System ID');
             if (!SystemIDPattern.test(arg.app_id)) throw new Error('Invalid App ID');
             const VirtualID = await this.VirtualID.GetVirtualID(arg.id, arg.app_id);
-            return this.IssueToken({ id: VirtualID, scopes: arg.scopes });
+            return this.IssueToken({ id: VirtualID, scopes: arg.scopes, expires_min: arg.expires_min });
         }
         const IssueDate = new Date();
         if (!VirtualIDPattern.test(arg.id)) throw new Error('Invalid Virtual ID');
-        const AccessToken = await this.AccessToken.CreateAccessToken(arg.id, arg.scopes, IssueDate);
-        const RefreshToken = await this.RefreshToken.CreateRefreshToken(arg.id, arg.scopes, IssueDate);
+        const AccessToken = await this.AccessToken.CreateAccessToken(arg.id, arg.scopes, IssueDate, arg.expires_min.access_token);
+        const RefreshToken = await this.RefreshToken.CreateRefreshToken(arg.id, arg.scopes, IssueDate, arg.expires_min.refresh_token);
         writeFile(`./system/account/token/${ToHash(AccessToken.token, 'romeo')}`, RefreshToken.token);
         const Ret = {
             token_type: 'Bearer',
