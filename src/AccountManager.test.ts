@@ -30,6 +30,9 @@ describe('Account Manager', () => {
         beforeAll(() => {
             jest.useFakeTimers({ now: FakeTime.getTime() });
         });
+        afterAll(() => {
+            jest.useRealTimers();
+        });
         it('Pre Entry/OK', async () => {
             const result = await Account.PreEntry('pre-entry@mail.meigetsu.jp');
             expect(result).toStrictEqual({
