@@ -47,7 +47,7 @@ describe('Account Manager', () => {
                 body: 'このメールアドレスは既に使用されています',
             });
         });
-        it('Create Token/System ID and App ID/No OpenID', async () => {
+        it('Create Token/No OpenID', async () => {
             const result = await Account.IssueToken({ id: '4010404006753', app_id: AppID, scopes: [ 'user.read' ] });
             expect(result).toStrictEqual({
                 token_type: 'Bearer',
