@@ -7,6 +7,7 @@ import { ToHash } from '@meigetsusoft/hash';
 import IORedis from 'ioredis';
 import { generate } from 'randomstring';
 import { CreateIDToken } from './IDToken';
+import { unlinkSync } from 'node:fs';
 
 export default class AccountManager {
     private CorpProfileGen: CorpProfileGenerator;
@@ -198,6 +199,8 @@ export default class AccountManager {
     }
     public async SignOut(AccessToken: string) {
         const PairRefreshToken = readFile(`./system/account/token/${ToHash(AccessToken, 'romeo')}`);
+        unlinkSync(`./system/account/token/${ToHash(AccessToken, 'romeo')}`);
+        unlinkSync(`./system/account/token/${ToHash(PairRefreshToken, 'sierra')}`);
         await this.AccessToken.Revoke(AccessToken);
         await this.RefreshToken.Revoke(PairRefreshToken);
         return { status: 200 };
