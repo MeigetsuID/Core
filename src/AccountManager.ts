@@ -169,7 +169,6 @@ export default class AccountManager {
                               return Target ? Target.rate : 'N';
                           })
                     : 'N';
-            console.log('End: Get Age Rate');
             const IDToken = CreateIDToken({
                 virtual_id: arg.id,
                 app_id: VIDInfo.app,
