@@ -11,8 +11,12 @@
     "eslint": "eslint --cache --ext .js,.ts .",
     "eslint:fix": "eslint --cache --ext .js,.ts . --fix",
     "coverage": "jest --coverage",
-    "test": "jest",
-    "prepack": "tsc --project tsconfig.release.json"
+    "pretest": "run-s container:stop container:start",
+    "test": "dotenv jest",
+    "posttest": "run-s container:stop",
+    "prepack": "tsc --project tsconfig.release.json",
+    "container:start": "docker compose up -d",
+    "container:stop": "docker compose down"
   },
   "repository": {
     "type": "git",

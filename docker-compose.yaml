@@ -1,0 +1,20 @@
+services:
+  db:
+    image: mariadb:11.4-noble
+    container_name: meigetsuid_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: mgidsrv
+      MYSQL_PASSWORD: e73GumHbZ6Ml9NOxrF78fO0vcFZ050
+      MYSQL_DATABASE: meigetsuid
+  redis:
+    image: redis:8.0-M01
+    container_name: meigetsuid_redis
+    ports:
+      - "6379:6379"
+    restart: always
