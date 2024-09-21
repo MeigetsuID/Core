@@ -1,7 +1,7 @@
 import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import CreateID from '@meigetsuid/idgenerator';
 import IOManager from '@meigetsuid/iomanager';
-import { SystemIDPattern, VirtualIDPattern } from './Pattern';
+import { AppIDPattern, SystemIDPattern, VirtualIDPattern } from './Pattern';
 import { readFile, writeFile } from 'nodeeasyfileio';
 import { ToHash } from '@meigetsusoft/hash';
 import IORedis from 'ioredis';
@@ -136,7 +136,7 @@ export default class AccountManager {
             });
         if (arg.app_id) {
             if (!SystemIDPattern.test(arg.id)) throw new Error('Invalid System ID');
-            if (!SystemIDPattern.test(arg.app_id)) throw new Error('Invalid App ID');
+            if (!AppIDPattern.test(arg.app_id)) throw new Error('Invalid App ID');
             const VirtualID = await this.VirtualID.GetVirtualID(arg.id, arg.app_id);
             return this.IssueToken({ id: VirtualID, scopes: arg.scopes, expires_min: arg.expires_min });
         }
