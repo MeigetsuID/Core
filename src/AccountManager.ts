@@ -95,7 +95,7 @@ export default class AccountManager {
     public async SignIn(ID: string, Password: string) {
         return await this.Account.SignIn(ID, Password);
     }
-    public async IssueToken(arg: { id: string; AppID?: string; scopes: string[] }): Promise<{
+    public async IssueToken(arg: { id: string; app_id?: string; scopes: string[] }): Promise<{
         token_type: string;
         access_token: string;
         refresh_token: string;
@@ -106,10 +106,10 @@ export default class AccountManager {
             id_token?: Date;
         };
     }> {
-        if (arg.AppID) {
+        if (arg.app_id) {
             if (!SystemIDPattern.test(arg.id)) throw new Error('Invalid System ID');
-            if (!SystemIDPattern.test(arg.AppID)) throw new Error('Invalid App ID');
-            const VirtualID = await this.VirtualID.GetVirtualID(arg.id, arg.AppID);
+            if (!SystemIDPattern.test(arg.app_id)) throw new Error('Invalid App ID');
+            const VirtualID = await this.VirtualID.GetVirtualID(arg.id, arg.app_id);
             return this.IssueToken({ id: VirtualID, scopes: arg.scopes });
         }
         const IssueDate = new Date();
