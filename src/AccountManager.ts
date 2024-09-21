@@ -113,44 +113,22 @@ export default class AccountManager {
             id_token?: Date;
         };
     }> {
-        if (!arg.expires_min)
-            return this.IssueToken({
-                id: arg.id,
-                app_id: arg.app_id,
-                scopes: arg.scopes,
-                expires_min: { access_token: 180, refresh_token: 10080 },
-            });
-        if (!arg.expires_min.access_token)
-            return this.IssueToken({
-                id: arg.id,
-                app_id: arg.app_id,
-                scopes: arg.scopes,
-                expires_min: { access_token: 180, refresh_token: arg.expires_min.refresh_token },
-            });
-        if (!arg.expires_min.refresh_token)
-            return this.IssueToken({
-                id: arg.id,
-                app_id: arg.app_id,
-                scopes: arg.scopes,
-                expires_min: { access_token: arg.expires_min.access_token, refresh_token: 10080 },
-            });
-        if (!arg.expires_min.id_token && arg.scopes.includes('openid')) {
-            return this.IssueToken({
-                id: arg.id,
-                app_id: arg.app_id,
-                scopes: arg.scopes,
-                expires_min: {
-                    access_token: arg.expires_min.access_token,
-                    refresh_token: arg.expires_min.refresh_token,
-                    id_token: 480,
-                },
-            });
-        }
+        const ExpiresMin = arg.expires_min
+            ? {
+                  access_token: arg.expires_min.access_token || 180,
+                  refresh_token: arg.expires_min.refresh_token || 10080,
+                  id_token: arg.expires_min.id_token || 480,
+              }
+            : {
+                  access_token: 180,
+                  refresh_token: 10080,
+                  id_token: 480,
+              };
         if (arg.app_id) {
             if (!SystemIDPattern.test(arg.id)) throw new Error('Invalid System ID');
             if (!AppIDPattern.test(arg.app_id)) throw new Error('Invalid App ID');
             const VirtualID = await this.VirtualID.GetVirtualID(arg.app_id, arg.id);
-            return this.IssueToken({ id: VirtualID, scopes: arg.scopes, expires_min: arg.expires_min });
+            return this.IssueToken({ id: VirtualID, scopes: arg.scopes, expires_min: ExpiresMin });
         }
         const IssueDate = new Date();
         if (!VirtualIDPattern.test(arg.id)) throw new Error('Invalid Virtual ID');
@@ -158,13 +136,13 @@ export default class AccountManager {
             arg.id,
             arg.scopes,
             IssueDate,
-            arg.expires_min.access_token
+            ExpiresMin.access_token
         );
         const RefreshToken = await this.RefreshToken.CreateRefreshToken(
             arg.id,
             arg.scopes,
             IssueDate,
-            arg.expires_min.refresh_token
+            ExpiresMin.refresh_token
         );
         writeFile(`./system/account/token/${ToHash(AccessToken.token, 'romeo')}`, RefreshToken.token);
         const Ret = {
@@ -182,7 +160,7 @@ export default class AccountManager {
             if (!VIDInfo) throw new Error('Virtual ID is not found');
             const AgeRate =
                 VIDInfo.account_type % 2 === 0 && VIDInfo.account_type !== 0
-                    ? await fetch('https://localhost:7900/profile/' + VIDInfo.id)
+                    ? await fetch('http://localhost:7900/profile/' + VIDInfo.id)
                           .then(res => res.json())
                           .then(profile => {
                               const Target = AccountManager.AgeRate.age_rates.find(
@@ -191,6 +169,7 @@ export default class AccountManager {
                               return Target ? Target.rate : 'N';
                           })
                     : 'N';
+            console.log('End: Get Age Rate');
             const IDToken = CreateIDToken({
                 virtual_id: arg.id,
                 app_id: VIDInfo.app,
@@ -199,10 +178,11 @@ export default class AccountManager {
                 mailaddress: VIDInfo.mailaddress,
                 account_type: VIDInfo.account_type,
                 issue_at: IssueDate,
+                expires_min: ExpiresMin.id_token,
                 age_rate: AgeRate,
             });
             Ret['id_token'] = IDToken;
-            Ret['expires_at']['id_token'] = new Date(IssueDate.getTime() + 180 * 1000);
+            Ret['expires_at']['id_token'] = new Date(IssueDate.getTime() + ExpiresMin.id_token * 60000);
         }
         return Ret;
     }
