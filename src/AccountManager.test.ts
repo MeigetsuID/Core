@@ -137,5 +137,24 @@ describe('Account Manager', () => {
             const result = await Account.SignIn('4010404006753', 'wrongpassword');
             expect(result).toBeNull();
         });
+        it('Create Token/OpenID', async () => {
+            const result = await Account.IssueToken({
+                id: '4010404006753',
+                app_id: AppID,
+                scopes: ['user.read', 'openid'],
+            });
+            expect(result).toStrictEqual({
+                token_type: 'Bearer',
+                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
+                // Fake Timerが使えないから、expires_atの時刻チェックはできない
+                expires_at: {
+                    access_token: expect.any(Date),
+                    refresh_token: expect.any(Date),
+                    id_token: expect.any(Date),
+                },
+            });
+        });
     });
 });
