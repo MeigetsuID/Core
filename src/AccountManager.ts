@@ -185,6 +185,16 @@ export default class AccountManager {
         }
         return Ret;
     }
+    public async Refresh(RefreshToken: string) {
+        const TokenInformation = await this.RefreshToken.Check(RefreshToken);
+        if (!TokenInformation) return { status: 401 };
+        const LinkedAccessToken = readFile(`./system/account/token/${ToHash(RefreshToken, 'sierra')}`);
+        await this.AccessToken.Revoke(LinkedAccessToken);
+        await this.RefreshToken.Revoke(RefreshToken);
+        unlinkSync(`./system/account/token/${ToHash(LinkedAccessToken, 'romeo')}`);
+        unlinkSync(`./system/account/token/${ToHash(RefreshToken, 'sierra')}`);
+        return await this.IssueToken({ id: TokenInformation.virtual_id, scopes: TokenInformation.scopes });
+    }
     public async SignOut(AccessToken: string) {
         const PairRefreshToken = readFile(`./system/account/token/${ToHash(AccessToken, 'romeo')}`);
         await this.AccessToken.Revoke(AccessToken);
