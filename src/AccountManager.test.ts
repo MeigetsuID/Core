@@ -50,15 +50,12 @@ describe('Account Manager', () => {
         it('Create Token/System ID and App ID/No OpenID', async () => {
             const result = await Account.IssueToken({ id: '4010404006753', app_id: AppID, scopes: [ 'user.read' ] });
             expect(result).toStrictEqual({
-                status: 201,
-                body: {
-                    token_type: 'Bearer',
-                    access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                    refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                    expires_at: {
-                        access_token: new Date(FakeTime.getTime() + 180 * 60000),
-                        refresh_token: new Date(FakeTime.getTime() + 10080 * 60000),
-                    },
+                token_type: 'Bearer',
+                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                expires_at: {
+                    access_token: new Date(FakeTime.getTime() + 180 * 60000),
+                    refresh_token: new Date(FakeTime.getTime() + 10080 * 60000),
                 },
             });
         });
