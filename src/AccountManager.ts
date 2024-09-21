@@ -10,7 +10,9 @@ import { CreateIDToken } from './IDToken';
 
 export default class AccountManager {
     private CorpProfileGen: CorpProfileGenerator;
-    private static readonly AgeRate = JSON.parse(readFile('./system/age_rate.json')) as { age_rates: { min: number; max?: number; rate: string }[] };
+    private static readonly AgeRate = JSON.parse(readFile('./system/age_rate.json')) as {
+        age_rates: { min: number; max?: number; rate: string }[];
+    };
     constructor(
         NTAAppKey: string,
         private Account = new IOManager.Account(),
@@ -218,7 +220,9 @@ export default class AccountManager {
     public async UpdateMailAddress(CacheID: string) {
         const UseMailAddressInfo = await this.ReadMailAddressFromCache(CacheID);
         if (UseMailAddressInfo.status === 404 || !UseMailAddressInfo.body.id) return { status: 404 };
-        await this.Account.UpdateAccount(UseMailAddressInfo.body.id, { mailaddress: UseMailAddressInfo.body.mailaddress });
+        await this.Account.UpdateAccount(UseMailAddressInfo.body.id, {
+            mailaddress: UseMailAddressInfo.body.mailaddress,
+        });
         await this.Redis.del(CacheID);
         return { status: 200 };
     }
