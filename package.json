@@ -11,11 +11,12 @@
     "eslint": "eslint --cache --ext .js,.ts .",
     "eslint:fix": "eslint --cache --ext .js,.ts . --fix",
     "coverage": "jest --coverage",
-    "pretest": "run-s container:stop container:start",
+    "pretest": "run-s container:stop container:start database:wait",
     "test": "dotenv jest",
     "posttest": "run-s container:stop",
     "prepack": "tsc --project tsconfig.release.json",
     "container:start": "docker compose up -d",
+    "database:wait": "node ./DBWait.js",
     "container:stop": "docker compose down"
   },
   "repository": {
@@ -62,6 +63,7 @@
     "eslint-plugin-jest": "^28.7.0",
     "eslint-plugin-node": "^11.1.0",
     "jest": "^29.7.0",
+    "mysql2": "^3.11.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.1.0",
     "prisma": "^5.6.0",
