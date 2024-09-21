@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { readFile } from 'nodeeasyfileio';
 
 describe('CreateIDToken', () => {
-    it('same/contain expires_sec', () => {
+    it('same/contain expires_min', () => {
         const arg = {
             virtual_id: 'vid-' + uuidv4().replace(/-/g, ''),
             app_id: 'app-' + uuidv4().replace(/-/g, ''),
@@ -13,7 +13,7 @@ describe('CreateIDToken', () => {
             mailaddress: 'test@mail.meigetsu.jp',
             account_type: 4,
             issue_at: new Date(),
-            expires_sec: 360,
+            expires_min: 360,
             nonce: 'nonce',
             age_rate: 'Z',
         };
@@ -22,7 +22,7 @@ describe('CreateIDToken', () => {
             aud: arg.app_id,
             iat: arg.issue_at.getTime(),
             iss: 'https://idportal.meigetsu.jp',
-            exp: arg.issue_at.getTime() + 360000,
+            exp: arg.issue_at.getTime() + arg.expires_min * 60000,
             email: arg.mailaddress,
             uid: arg.user_id,
             name: arg.name,
@@ -32,7 +32,7 @@ describe('CreateIDToken', () => {
         };
         expect(CreateIDToken(arg)).toBe(sign(payload, readFile('./system/openid/private.key'), { algorithm: 'RS256' }));
     });
-    it('same/not contain expires_sec', () => {
+    it('same/not contain expires_min', () => {
         const arg = {
             virtual_id: 'vid-' + uuidv4().replace(/-/g, ''),
             app_id: 'app-' + uuidv4().replace(/-/g, ''),
@@ -49,7 +49,7 @@ describe('CreateIDToken', () => {
             aud: arg.app_id,
             iat: arg.issue_at.getTime(),
             iss: 'https://idportal.meigetsu.jp',
-            exp: arg.issue_at.getTime() + 180000,
+            exp: arg.issue_at.getTime() + 480 * 60000,
             email: arg.mailaddress,
             uid: arg.user_id,
             name: arg.name,
@@ -58,7 +58,7 @@ describe('CreateIDToken', () => {
             age: arg.age_rate,
         };
         expect(CreateIDToken(arg)).toBe(
-            sign({ ...payload, exp: payload.iat + 180000 }, readFile('./system/openid/private.key'), {
+            sign(payload, readFile('./system/openid/private.key'), {
                 algorithm: 'RS256',
             })
         );
@@ -72,7 +72,7 @@ describe('CreateIDToken', () => {
             mailaddress: 'test@mail.meigetsu.jp',
             account_type: 4,
             issue_at: new Date(),
-            expires_sec: 360,
+            expires_min: 480,
             nonce: 'nonce',
             age_rate: 'Z',
         };
@@ -81,7 +81,7 @@ describe('CreateIDToken', () => {
             aud: arg.app_id,
             iat: arg.issue_at.getTime(),
             iss: 'https://idportal.meigetsu.jp',
-            exp: arg.issue_at.getTime() + 360000,
+            exp: arg.issue_at.getTime() + arg.expires_min * 60000,
             email: arg.mailaddress,
             uid: arg.user_id,
             name: arg.name,

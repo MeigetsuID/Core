@@ -9,7 +9,7 @@ export function CreateIDToken(arg: {
     mailaddress: string;
     account_type: number;
     issue_at: Date;
-    expires_sec?: number;
+    expires_min?: number;
     nonce?: string;
     age_rate: string;
 }) {
@@ -19,7 +19,7 @@ export function CreateIDToken(arg: {
         aud: arg.app_id,
         iat: arg.issue_at.getTime(),
         iss: OpenIDConfiguration['issuer'],
-        exp: arg.issue_at.getTime() + (arg.expires_sec ?? 180) * 1000,
+        exp: arg.issue_at.getTime() + (arg.expires_min ?? 480) * 60000,
         email: arg.mailaddress,
         uid: arg.user_id,
         name: arg.name,
