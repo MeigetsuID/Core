@@ -137,7 +137,7 @@ export default class AccountManager {
         if (arg.app_id) {
             if (!SystemIDPattern.test(arg.id)) throw new Error('Invalid System ID');
             if (!AppIDPattern.test(arg.app_id)) throw new Error('Invalid App ID');
-            const VirtualID = await this.VirtualID.GetVirtualID(arg.id, arg.app_id);
+            const VirtualID = await this.VirtualID.GetVirtualID(arg.app_id, arg.id);
             return this.IssueToken({ id: VirtualID, scopes: arg.scopes, expires_min: arg.expires_min });
         }
         const IssueDate = new Date();
