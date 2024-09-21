@@ -101,7 +101,7 @@ export default class AccountManager {
         id: string;
         app_id?: string;
         scopes: string[];
-        expires_min?: { access_token?: number; refresh_token?: number };
+        expires_min?: { access_token?: number; refresh_token?: number; id_token?: number };
     }): Promise<{
         token_type: string;
         access_token: string;
@@ -134,6 +134,18 @@ export default class AccountManager {
                 scopes: arg.scopes,
                 expires_min: { access_token: arg.expires_min.access_token, refresh_token: 10080 },
             });
+        if (!arg.expires_min.id_token && arg.scopes.includes('openid')) {
+            return this.IssueToken({
+                id: arg.id,
+                app_id: arg.app_id,
+                scopes: arg.scopes,
+                expires_min: {
+                    access_token: arg.expires_min.access_token,
+                    refresh_token: arg.expires_min.refresh_token,
+                    id_token: 480,
+                },
+            });
+        }
         if (arg.app_id) {
             if (!SystemIDPattern.test(arg.id)) throw new Error('Invalid System ID');
             if (!AppIDPattern.test(arg.app_id)) throw new Error('Invalid App ID');
