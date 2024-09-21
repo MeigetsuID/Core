@@ -135,5 +135,5 @@ migrations/
 
 # Meigetsu ID Cache Data
 system/**/*.dat
+system/account/token/*
 !system/account/*
-system/idtoken/*
