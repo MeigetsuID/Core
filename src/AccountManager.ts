@@ -145,6 +145,7 @@ export default class AccountManager {
             ExpiresMin.refresh_token
         );
         writeFile(`./system/account/token/${ToHash(AccessToken.token, 'romeo')}`, RefreshToken.token);
+        writeFile(`./system/account/token/${ToHash(RefreshToken.token, 'sierra')}`, AccessToken.token);
         const Ret = {
             token_type: 'Bearer',
             access_token: AccessToken.token,
