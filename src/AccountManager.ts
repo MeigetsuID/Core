@@ -214,12 +214,65 @@ export default class AccountManager {
         if (!VirtualID) return { status: 401 };
         const AccountInfo = await this.VirtualID.GetLinkedInformation(VirtualID);
         if (!AccountInfo) return { status: 500 };
+        const VirtualIDs = await this.VirtualID.GetAllVirtualIDBySystemID(AccountInfo.id);
+        const Apps = await this.Application.GetApps(AccountInfo.id).then(apps => apps.map(app => app.client_id));
+        VirtualIDs.push(...await Promise.all(Apps.map(AppID => this.VirtualID.GetAllVirtualIDByAppID(AppID))).then(result => result.flat()));
         const Promises = [
-            this.Token.RevokeAll(VirtualID),
-            this.VirtualID.DeleteAccount(AccountInfo.id),
-            this.Application.DeleteApps(AccountInfo.id),
-            this.Account.DeleteAccount(AccountInfo.id),
+            ...VirtualIDs.map(VirtualID => {
+                return this.Token.RevokeAll(VirtualID).catch((er: Error) => {
+                    writeFile('./system/error/token/revoke.log', `${VirtualID} : ${er.message}\n`, true);
+                    return false;
+                });
+            }),
+            this.VirtualID.DeleteAccount(AccountInfo.id).catch((er: Error) => {
+                writeFile(
+                    './system/error/virtualid/delete.log',
+                    `Virtual ID Delete Error: ${AccountInfo.id} : ${er.message}\n`,
+                    true
+                );
+                return false;
+            }),
+            ...Apps.map(AppID => this.VirtualID.DeleteApp(AppID).catch((er: Error) => {
+                writeFile(
+                    './system/error/virtualid/delete.log',
+                    `Virtual ID Delete Error: ${AppID} : ${er.message}\n`,
+                    true
+                );
+                return false;
+            })),
+            this.Application.DeleteApps(AccountInfo.id).catch((er: Error) => {
+                writeFile(
+                    './system/error/application/delete.log',
+                    `Application Delete Error: ${AccountInfo.id} : ${er.message}\n`,
+                    true
+                );
+                return false;
+            }),
+            this.Account.DeleteAccount(AccountInfo.id).catch((er: Error) => {
+                writeFile(
+                    './system/error/account/delete.log',
+                    `Account Delete Error: ${AccountInfo.id} : ${er.message}\n`,
+                    true
+                );
+                return false;
+            }),
         ];
-        return await Promise.all(Promises).then(results => ({ status: results.every(result => result) ? 200 : 500 }));
+        return await Promise.all(Promises)
+            .then(results => {
+                const Result = { status: results.every(result => result) ? 200 : 500 };
+                if (Result.status === 500) {
+                    const ErrorProcessID = results.filter(result => !result).map((_, index) => index);
+                    writeFile(
+                        './system/error/account/master.log',
+                        `Account Delete Error: ${AccountInfo.id} : ${ErrorProcessID.join(', ')}\n`,
+                        true
+                    );
+                }
+                return Result;
+            })
+            .catch((er: Error) => {
+                writeFile('./system/error.log', `Account Delete Error: ${AccountInfo.id} : ${er.message}\n`, true);
+                return { status: 500 };
+            });
     }
 }
