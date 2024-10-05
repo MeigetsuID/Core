@@ -94,12 +94,46 @@ export default class AccountManager {
     public async SignIn(ID: string, Password: string) {
         return await this.Account.SignIn(ID, Password);
     }
-    public async IssueToken(arg: {
-        id: string;
-        app_id?: string;
-        scopes: string[];
-        expires_min?: { access_token?: number; refresh_token?: number; id_token?: number };
-    }): Promise<{
+    private async CreateIDToken(VirtualID: string, IDTokenExpiresMin: number, IssueDate: Date = new Date()) {
+        const VIDInfo = await this.VirtualID.GetLinkedInformation(VirtualID);
+        /* v8 ignore next */
+        if (!VIDInfo) throw new Error('Virtual ID is not found');
+        const AgeRate =
+            VIDInfo.account_type % 2 === 0 && VIDInfo.account_type !== 0
+                ? await fetch('http://localhost:7900/profile/' + VIDInfo.id)
+                      .then(res => res.json())
+                      .then(profile => {
+                          const Target = AccountManager.AgeRate.age_rates.find(
+                              rate => rate.min <= profile.age && (rate.max ? rate.max >= profile.age : true)
+                          );
+                          return Target ? Target.rate : 'N';
+                      })
+                : 'N';
+        return CreateIDToken({
+            virtual_id: VirtualID,
+            app_id: VIDInfo.app,
+            user_id: VIDInfo.user_id,
+            name: VIDInfo.name,
+            mailaddress: VIDInfo.mailaddress,
+            account_type: VIDInfo.account_type,
+            issue_at: IssueDate,
+            expires_min: IDTokenExpiresMin,
+            age_rate: AgeRate,
+        });
+    }
+    public async IssueToken(
+        arg: {
+            id: string;
+            app_id?: string;
+            scopes: string[];
+        },
+        IssueDate = new Date(),
+        ReservedExpiresMin: Partial<{ access_token: number; refresh_token: number; id_token: number }> = {
+            access_token: 180,
+            refresh_token: 10080,
+            id_token: 480,
+        }
+    ): Promise<{
         token_type: string;
         access_token: string;
         refresh_token: string;
@@ -110,62 +144,47 @@ export default class AccountManager {
             id_token?: Date;
         };
     }> {
-        const ExpiresMin = arg.expires_min
-            ? {
-                  access_token: arg.expires_min.access_token || 180,
-                  refresh_token: arg.expires_min.refresh_token || 10080,
-                  id_token: arg.expires_min.id_token || 480,
-              }
-            : {
-                  access_token: 180,
-                  refresh_token: 10080,
-                  id_token: 480,
-              };
+        const ExpiresMin = {
+            access_token: ReservedExpiresMin.access_token || 180,
+            refresh_token: ReservedExpiresMin.refresh_token || 10080,
+            id_token: ReservedExpiresMin.id_token || 480,
+        };
         if (arg.app_id) {
             if (!SystemIDPattern.test(arg.id)) throw new Error('Invalid System ID');
             if (!AppIDPattern.test(arg.app_id)) throw new Error('Invalid App ID');
             const VirtualID = await this.VirtualID.GetVirtualID(arg.app_id, arg.id);
-            return this.IssueToken({ id: VirtualID, scopes: arg.scopes, expires_min: ExpiresMin });
+            return this.IssueToken({ id: VirtualID, scopes: arg.scopes }, IssueDate);
         }
-        const IssueDate = new Date();
         if (!VirtualIDPattern.test(arg.id)) throw new Error('Invalid Virtual ID');
         const Ret = await this.Token.CreateToken(arg.id, arg.scopes, IssueDate, {
             access_token: ExpiresMin.access_token,
             refresh_token: ExpiresMin.refresh_token,
         });
         if (arg.scopes.includes('openid')) {
-            const VIDInfo = await this.VirtualID.GetLinkedInformation(arg.id);
-            /* v8 ignore next */
-            if (!VIDInfo) throw new Error('Virtual ID is not found');
-            const AgeRate =
-                VIDInfo.account_type % 2 === 0 && VIDInfo.account_type !== 0
-                    ? await fetch('http://localhost:7900/profile/' + VIDInfo.id)
-                          .then(res => res.json())
-                          .then(profile => {
-                              const Target = AccountManager.AgeRate.age_rates.find(
-                                  rate => rate.min <= profile.age && (rate.max ? rate.max >= profile.age : true)
-                              );
-                              return Target ? Target.rate : 'N';
-                          })
-                    : 'N';
-            const IDToken = CreateIDToken({
-                virtual_id: arg.id,
-                app_id: VIDInfo.app,
-                user_id: VIDInfo.user_id,
-                name: VIDInfo.name,
-                mailaddress: VIDInfo.mailaddress,
-                account_type: VIDInfo.account_type,
-                issue_at: IssueDate,
-                expires_min: ExpiresMin.id_token,
-                age_rate: AgeRate,
-            });
-            Ret['id_token'] = IDToken;
+            Ret['id_token'] = await this.CreateIDToken(arg.id, ExpiresMin.id_token, IssueDate);
             Ret['expires_at']['id_token'] = new Date(IssueDate.getTime() + ExpiresMin.id_token * 60000);
         }
         return Ret;
     }
-    public async Refresh(RefreshToken: string) {
-        return await this.Token.Refresh(RefreshToken);
+    public async Refresh(
+        RefreshToken: string,
+        RefreshDate: Date = new Date(),
+        ReservedExpiresMin: Partial<{ access_token: number; refresh_token: number; id_token: number }> = {
+            access_token: 180,
+            refresh_token: 10080,
+            id_token: 480,
+        }
+    ) {
+        const Ret = await this.Token.Refresh(RefreshToken, RefreshDate, {
+            access_token: ReservedExpiresMin.access_token || 180,
+            refresh_token: ReservedExpiresMin.refresh_token || 10080,
+        });
+        if (!Ret) return null;
+        const VirtualID = await this.Token.Check(Ret.access_token, ['openid']);
+        if (!VirtualID) return Ret;
+        Ret['id_token'] = await this.CreateIDToken(VirtualID, ReservedExpiresMin.id_token || 480, RefreshDate);
+        Ret['expires_at']['id_token'] = new Date(RefreshDate.getTime() + (ReservedExpiresMin.id_token || 480) * 60000);
+        return Ret;
     }
     public async SignOut(AccessToken: string) {
         const Result = await this.Token.Revoke(AccessToken);
@@ -216,7 +235,11 @@ export default class AccountManager {
         if (!AccountInfo) return { status: 500 };
         const VirtualIDs = await this.VirtualID.GetAllVirtualIDBySystemID(AccountInfo.id);
         const Apps = await this.Application.GetApps(AccountInfo.id).then(apps => apps.map(app => app.client_id));
-        VirtualIDs.push(...await Promise.all(Apps.map(AppID => this.VirtualID.GetAllVirtualIDByAppID(AppID))).then(result => result.flat()));
+        VirtualIDs.push(
+            ...(await Promise.all(Apps.map(AppID => this.VirtualID.GetAllVirtualIDByAppID(AppID))).then(result =>
+                result.flat()
+            ))
+        );
         const Promises = [
             ...VirtualIDs.map(VirtualID => {
                 return this.Token.RevokeAll(VirtualID).catch((er: Error) => {
@@ -232,14 +255,16 @@ export default class AccountManager {
                 );
                 return false;
             }),
-            ...Apps.map(AppID => this.VirtualID.DeleteApp(AppID).catch((er: Error) => {
-                writeFile(
-                    './system/error/virtualid/delete.log',
-                    `Virtual ID Delete Error: ${AppID} : ${er.message}\n`,
-                    true
-                );
-                return false;
-            })),
+            ...Apps.map(AppID =>
+                this.VirtualID.DeleteApp(AppID).catch((er: Error) => {
+                    writeFile(
+                        './system/error/virtualid/delete.log',
+                        `Virtual ID Delete Error: ${AppID} : ${er.message}\n`,
+                        true
+                    );
+                    return false;
+                })
+            ),
             this.Application.DeleteApps(AccountInfo.id).catch((er: Error) => {
                 writeFile(
                     './system/error/application/delete.log',

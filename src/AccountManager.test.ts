@@ -50,35 +50,6 @@ describe('Account Manager', () => {
                 body: 'このメールアドレスは既に使用されています',
             });
         });
-        it('Create Token/No OpenID', async () => {
-            const result = await Account.IssueToken({ id: '4010404006753', app_id: AppID, scopes: ['user.read'] });
-            expect(result).toStrictEqual({
-                token_type: 'Bearer',
-                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                expires_at: {
-                    access_token: new Date(FakeTime.getTime() + 180 * 60000),
-                    refresh_token: new Date(FakeTime.getTime() + 10080 * 60000),
-                },
-            });
-        });
-        it('Refresh Token/No OpenID', async () => {
-            const TokenRecord = await Account.IssueToken({
-                id: '4010404006753',
-                app_id: AppID,
-                scopes: ['user.read'],
-            });
-            const result = await Account.Refresh(TokenRecord.refresh_token);
-            expect(result).toStrictEqual({
-                token_type: 'Bearer',
-                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                expires_at: {
-                    access_token: new Date(FakeTime.getTime() + 180 * 60000),
-                    refresh_token: new Date(FakeTime.getTime() + 10080 * 60000),
-                },
-            });
-        });
     });
     describe('No Time Mock', () => {
         it('Entry/OK', async () => {
@@ -155,41 +126,85 @@ describe('Account Manager', () => {
             expect(result).toBeNull();
         });
         it('Create Token/OpenID', async () => {
-            const result = await Account.IssueToken({
-                id: '4010404006753',
-                app_id: AppID,
-                scopes: ['user.read', 'openid'],
-            });
+            const Now = new Date();
+            Now.setMilliseconds(0);
+            const result = await Account.IssueToken(
+                {
+                    id: '4010404006753',
+                    app_id: AppID,
+                    scopes: ['user.read', 'openid'],
+                },
+                Now
+            );
             expect(result).toStrictEqual({
                 token_type: 'Bearer',
                 access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
                 refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
                 id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
-                // Fake Timerが使えないから、expires_atの時刻チェックはできない
                 expires_at: {
-                    access_token: expect.any(Date),
-                    refresh_token: expect.any(Date),
-                    id_token: expect.any(Date),
+                    access_token: new Date(Now.getTime() + 180 * 60000),
+                    refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                    id_token: new Date(Now.getTime() + 480 * 60000),
                 },
             });
         });
         it('Refresh Token/OpenID', async () => {
-            const TokenRecord = await Account.IssueToken({
-                id: '4010404006753',
-                app_id: AppID,
-                scopes: ['user.read', 'openid'],
+            const Now = new Date();
+            Now.setMilliseconds(0);
+            const TokenRecord = await Account.IssueToken(
+                {
+                    id: '4010404006753',
+                    app_id: AppID,
+                    scopes: ['user.read', 'openid'],
+                },
+                Now
+            );
+            const result = await Account.Refresh(TokenRecord.refresh_token, Now);
+            expect(result).toStrictEqual({
+                token_type: 'Bearer',
+                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
+                expires_at: {
+                    access_token: new Date(Now.getTime() + 180 * 60000),
+                    refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                    id_token: new Date(Now.getTime() + 480 * 60000),
+                },
             });
+        });
+        it('Create Token/No OpenID', async () => {
+            const Now = new Date();
+            Now.setMilliseconds(0);
+            const result = await Account.IssueToken({ id: '4010404006753', app_id: AppID, scopes: ['user.read'] }, Now);
+            expect(result).toStrictEqual({
+                token_type: 'Bearer',
+                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                expires_at: {
+                    access_token: new Date(Now.getTime() + 180 * 60000),
+                    refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                },
+            });
+        });
+        it('Refresh Token/No OpenID', async () => {
+            const Now = new Date();
+            Now.setMilliseconds(0);
+            const TokenRecord = await Account.IssueToken(
+                {
+                    id: '4010404006753',
+                    app_id: AppID,
+                    scopes: ['user.read'],
+                },
+                Now
+            );
             const result = await Account.Refresh(TokenRecord.refresh_token);
             expect(result).toStrictEqual({
                 token_type: 'Bearer',
                 access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
                 refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
-                // Fake Timerが使えないから、expires_atの時刻チェックはできない
                 expires_at: {
-                    access_token: expect.any(Date),
-                    refresh_token: expect.any(Date),
-                    id_token: expect.any(Date),
+                    access_token: new Date(Now.getTime() + 180 * 60000),
+                    refresh_token: new Date(Now.getTime() + 10080 * 60000),
                 },
             });
         });
