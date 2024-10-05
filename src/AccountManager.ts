@@ -2,7 +2,7 @@ import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import CreateID from '@meigetsuid/idgenerator';
 import IOManager from '@meigetsuid/iomanager';
 import { AppIDPattern, SystemIDPattern, VirtualIDPattern } from './Pattern';
-import { readFile } from 'nodeeasyfileio';
+import { readFile, writeFile } from 'nodeeasyfileio';
 import IORedis from 'ioredis';
 import { generate } from 'randomstring';
 import { CreateIDToken } from './IDToken';
@@ -129,12 +129,10 @@ export default class AccountManager {
         }
         const IssueDate = new Date();
         if (!VirtualIDPattern.test(arg.id)) throw new Error('Invalid Virtual ID');
-        const Ret = await this.Token.CreateToken(
-            arg.id,
-            arg.scopes,
-            IssueDate,
-            { access_token: ExpiresMin.access_token, refresh_token: ExpiresMin.refresh_token },
-        );
+        const Ret = await this.Token.CreateToken(arg.id, arg.scopes, IssueDate, {
+            access_token: ExpiresMin.access_token,
+            refresh_token: ExpiresMin.refresh_token,
+        });
         if (arg.scopes.includes('openid')) {
             const VIDInfo = await this.VirtualID.GetLinkedInformation(arg.id);
             /* v8 ignore next */
