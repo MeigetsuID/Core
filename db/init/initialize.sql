@@ -34,25 +34,17 @@ CREATE TABLE `virtualid` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `accesstoken` (
-    `Token` VARCHAR(128) NOT NULL,
+CREATE TABLE `token` (
+    `AccessToken` VARCHAR(128) NOT NULL,
+    `RefreshToken` VARCHAR(128) NOT NULL,
     `VirtualID` VARCHAR(36) NOT NULL,
     `Scopes` TEXT NOT NULL,
-    `ExpiresAt` DATETIME NOT NULL,
+    `AExpiresAt` DATETIME NOT NULL,
+    `RExpiresAt` DATETIME NOT NULL,
 
-    UNIQUE INDEX `accesstoken_Token_key`(`Token`),
-    PRIMARY KEY (`Token`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `refreshtoken` (
-    `Token` VARCHAR(128) NOT NULL,
-    `VirtualID` VARCHAR(36) NOT NULL,
-    `Scopes` TEXT NOT NULL,
-    `ExpiresAt` DATETIME NOT NULL,
-
-    UNIQUE INDEX `refreshtoken_Token_key`(`Token`),
-    PRIMARY KEY (`Token`)
+    UNIQUE INDEX `token_AccessToken_key`(`AccessToken`),
+    UNIQUE INDEX `token_RefreshToken_key`(`RefreshToken`),
+    PRIMARY KEY (`AccessToken`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
@@ -62,9 +54,9 @@ ALTER TABLE `application` ADD CONSTRAINT `application_DeveloperID_fkey` FOREIGN 
 ALTER TABLE `virtualid` ADD CONSTRAINT `virtualid_ID_fkey` FOREIGN KEY (`ID`) REFERENCES `masteruserrecord`(`ID`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `accesstoken` ADD CONSTRAINT `accesstoken_VirtualID_fkey` FOREIGN KEY (`VirtualID`) REFERENCES `virtualid`(`VirtualID`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `virtualid` ADD CONSTRAINT `virtualid_AppID_fkey` FOREIGN KEY (`AppID`) REFERENCES `application`(`AppID`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `refreshtoken` ADD CONSTRAINT `refreshtoken_VirtualID_fkey` FOREIGN KEY (`VirtualID`) REFERENCES `virtualid`(`VirtualID`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `token` ADD CONSTRAINT `token_VirtualID_fkey` FOREIGN KEY (`VirtualID`) REFERENCES `virtualid`(`VirtualID`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 GRANT SELECT,INSERT,UPDATE,DELETE ON meigetsuid.* TO mgidsrv;
