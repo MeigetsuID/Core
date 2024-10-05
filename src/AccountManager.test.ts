@@ -62,6 +62,23 @@ describe('Account Manager', () => {
                 },
             });
         });
+        it('Refresh Token/No OpenID', async () => {
+            const TokenRecord = await Account.IssueToken({
+                id: '4010404006753',
+                app_id: AppID,
+                scopes: ['user.read'],
+            });
+            const result = await Account.Refresh(TokenRecord.refresh_token);
+            expect(result).toStrictEqual({
+                token_type: 'Bearer',
+                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                expires_at: {
+                    access_token: new Date(FakeTime.getTime() + 180 * 60000),
+                    refresh_token: new Date(FakeTime.getTime() + 10080 * 60000),
+                },
+            });
+        });
     });
     describe('No Time Mock', () => {
         it('Entry/OK', async () => {
@@ -143,6 +160,26 @@ describe('Account Manager', () => {
                 app_id: AppID,
                 scopes: ['user.read', 'openid'],
             });
+            expect(result).toStrictEqual({
+                token_type: 'Bearer',
+                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
+                // Fake Timerが使えないから、expires_atの時刻チェックはできない
+                expires_at: {
+                    access_token: expect.any(Date),
+                    refresh_token: expect.any(Date),
+                    id_token: expect.any(Date),
+                },
+            });
+        });
+        it('Refresh Token/OpenID', async () => {
+            const TokenRecord = await Account.IssueToken({
+                id: '4010404006753',
+                app_id: AppID,
+                scopes: ['user.read', 'openid'],
+            });
+            const result = await Account.Refresh(TokenRecord.refresh_token);
             expect(result).toStrictEqual({
                 token_type: 'Bearer',
                 access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
