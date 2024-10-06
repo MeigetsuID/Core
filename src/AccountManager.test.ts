@@ -156,7 +156,10 @@ describe('Account Manager', () => {
             it('No OpenID', async () => {
                 const Now = new Date();
                 Now.setMilliseconds(0);
-                const result = await Account.IssueToken({ id: '4010404006753', app_id: AppID, scopes: ['user.read'] }, Now);
+                const result = await Account.IssueToken(
+                    { id: '4010404006753', app_id: AppID, scopes: ['user.read'] },
+                    Now
+                );
                 expect(result).toStrictEqual({
                     token_type: 'Bearer',
                     access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
@@ -168,13 +171,19 @@ describe('Account Manager', () => {
                 });
             });
             it('Invalid System ID', async () => {
-                await expect(() => Account.IssueToken({ id: '99999999', app_id: AppID, scopes: ['user.read'] })).rejects.toThrow('Invalid System ID');
+                await expect(() =>
+                    Account.IssueToken({ id: '99999999', app_id: AppID, scopes: ['user.read'] })
+                ).rejects.toThrow('Invalid System ID');
             });
             it('Invalid App ID', async () => {
-                await expect(() => Account.IssueToken({ id: '4010404006753', app_id: 'invalidappid', scopes: ['user.read'] })).rejects.toThrow('Invalid App ID');
+                await expect(() =>
+                    Account.IssueToken({ id: '4010404006753', app_id: 'invalidappid', scopes: ['user.read'] })
+                ).rejects.toThrow('Invalid App ID');
             });
             it('Invalid Virtual ID', async () => {
-                await expect(() => Account.IssueToken({ id: '4010404006753', scopes: ['user.read'] })).rejects.toThrow('Invalid Virtual ID');
+                await expect(() => Account.IssueToken({ id: '4010404006753', scopes: ['user.read'] })).rejects.toThrow(
+                    'Invalid Virtual ID'
+                );
             });
         });
         describe('Refresh Token', () => {
@@ -231,13 +240,11 @@ describe('Account Manager', () => {
         });
         describe('Sign Out', () => {
             it('OK', async () => {
-                const TokenRecord = await Account.IssueToken(
-                    {
-                        id: '4010404006753',
-                        app_id: AppID,
-                        scopes: ['user.read'],
-                    }
-                );
+                const TokenRecord = await Account.IssueToken({
+                    id: '4010404006753',
+                    app_id: AppID,
+                    scopes: ['user.read'],
+                });
                 const result = await Account.SignOut(TokenRecord.access_token);
                 expect(result).toStrictEqual({ status: 200 });
             });
