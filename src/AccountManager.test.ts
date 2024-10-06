@@ -208,5 +208,9 @@ describe('Account Manager', () => {
                 },
             });
         });
+        it('Refresh Token/Invalid Refresh Token', async () => {
+            const result = await Account.Refresh('invalidrefreshtoken');
+            expect(result).toBeNull();
+        });
     });
 });
