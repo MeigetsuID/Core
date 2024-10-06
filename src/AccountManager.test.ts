@@ -52,180 +52,190 @@ describe('Account Manager', () => {
         });
     });
     describe('No Time Mock', () => {
-        it('Entry/OK', async () => {
-            const PreEntryInfo = await Account.PreEntry('entry-test01@mail.meigetsu.jp');
-            if (typeof PreEntryInfo.body === 'string') throw new Error(PreEntryInfo.body);
-            const result = await Account.Entry(PreEntryInfo.body.id, {
-                user_id: 'entry-test01',
-                name: 'Entry Test',
-                password: 'password01',
+        describe('Entry', () => {
+            it('OK', async () => {
+                const PreEntryInfo = await Account.PreEntry('entry-test01@mail.meigetsu.jp');
+                if (typeof PreEntryInfo.body === 'string') throw new Error(PreEntryInfo.body);
+                const result = await Account.Entry(PreEntryInfo.body.id, {
+                    user_id: 'entry-test01',
+                    name: 'Entry Test',
+                    password: 'password01',
+                });
+                expect(result).toStrictEqual({ status: 201 });
+                const resultAfter = await Account.Entry(PreEntryInfo.body.id, {
+                    user_id: 'entry-test01',
+                    name: 'Entry Test',
+                    password: 'password01',
+                });
+                expect(resultAfter).toStrictEqual({ status: 404 });
             });
-            expect(result).toStrictEqual({ status: 201 });
-            const resultAfter = await Account.Entry(PreEntryInfo.body.id, {
-                user_id: 'entry-test01',
-                name: 'Entry Test',
-                password: 'password01',
+            it('Not Found', async () => {
+                const result = await Account.Entry('99999999', {
+                    user_id: 'entry-test02',
+                    name: 'Entry Test',
+                    password: 'password01',
+                });
+                expect(result).toStrictEqual({ status: 404 });
             });
-            expect(resultAfter).toStrictEqual({ status: 404 });
-        });
-        it('Entry/Not Found', async () => {
-            const result = await Account.Entry('99999999', {
-                user_id: 'entry-test02',
-                name: 'Entry Test',
-                password: 'password01',
+            it('User ID Already Exists', async () => {
+                const PreEntryInfo = await Account.PreEntry('entry-test03@mail.meigetsu.jp');
+                if (typeof PreEntryInfo.body === 'string') throw new Error(PreEntryInfo.body);
+                const result = await Account.Entry(PreEntryInfo.body.id, {
+                    user_id: 'meigetsu2020',
+                    name: 'Entry Test',
+                    password: 'password01',
+                });
+                expect(result).toStrictEqual({ status: 400, body: 'このユーザーＩＤは使用できません' });
             });
-            expect(result).toStrictEqual({ status: 404 });
-        });
-        it('Entry/User ID Already Exists', async () => {
-            const PreEntryInfo = await Account.PreEntry('entry-test03@mail.meigetsu.jp');
-            if (typeof PreEntryInfo.body === 'string') throw new Error(PreEntryInfo.body);
-            const result = await Account.Entry(PreEntryInfo.body.id, {
-                user_id: 'meigetsu2020',
-                name: 'Entry Test',
-                password: 'password01',
-            });
-            expect(result).toStrictEqual({ status: 400, body: 'このユーザーＩＤは使用できません' });
-        });
-        it('Entry/Corp Number Already Exists', async () => {
-            const PreEntryInfo = await Account.PreEntry('entry-test04@mail.meigetsu.jp');
-            if (typeof PreEntryInfo.body === 'string') throw new Error(PreEntryInfo.body);
-            const result = await Account.Entry(PreEntryInfo.body.id, {
-                corp_number: '4010404006753',
-                user_id: 'entry-test04',
-                name: 'Entry Test',
-                password: 'password01',
-            });
-            expect(result).toStrictEqual({ status: 400, body: 'この法人のアカウントは既に登録されています。' });
-        });
-        it('Sign In/With System ID', async () => {
-            const result = await Account.SignIn('4010404006753', 'password01');
-            expect(result).toBe('4010404006753');
-        });
-        it('Sign In/With User ID', async () => {
-            const result = await Account.SignIn('meigetsu2020', 'password01');
-            expect(result).toBe('4010404006753');
-        });
-        it('Sign In/With Mail Address', async () => {
-            const result = await Account.SignIn('info@mail.meigetsu.jp', 'password01');
-            expect(result).toBe('4010404006753');
-        });
-        it('Sign In/System ID Not Found', async () => {
-            const result = await Account.SignIn('99999999', 'password01');
-            expect(result).toBeNull();
-        });
-        it('Sign In/User ID Not Found', async () => {
-            const result = await Account.SignIn('notfound', 'password01');
-            expect(result).toBeNull();
-        });
-        it('Sign In/Mail Address Not Found', async () => {
-            const result = await Account.SignIn('notfound@mail.meigetsu.jp', 'password01');
-            expect(result).toBeNull();
-        });
-        it('Sign In/Wrong Password', async () => {
-            const result = await Account.SignIn('4010404006753', 'wrongpassword');
-            expect(result).toBeNull();
-        });
-        it('Create Token/OpenID', async () => {
-            const Now = new Date();
-            Now.setMilliseconds(0);
-            const result = await Account.IssueToken(
-                {
-                    id: '4010404006753',
-                    app_id: AppID,
-                    scopes: ['user.read', 'openid'],
-                },
-                Now
-            );
-            expect(result).toStrictEqual({
-                token_type: 'Bearer',
-                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
-                expires_at: {
-                    access_token: new Date(Now.getTime() + 180 * 60000),
-                    refresh_token: new Date(Now.getTime() + 10080 * 60000),
-                    id_token: new Date(Now.getTime() + 480 * 60000),
-                },
+            it('Corp Number Already Exists', async () => {
+                const PreEntryInfo = await Account.PreEntry('entry-test04@mail.meigetsu.jp');
+                if (typeof PreEntryInfo.body === 'string') throw new Error(PreEntryInfo.body);
+                const result = await Account.Entry(PreEntryInfo.body.id, {
+                    corp_number: '4010404006753',
+                    user_id: 'entry-test04',
+                    name: 'Entry Test',
+                    password: 'password01',
+                });
+                expect(result).toStrictEqual({ status: 400, body: 'この法人のアカウントは既に登録されています。' });
             });
         });
-        it('Refresh Token/OpenID', async () => {
-            const Now = new Date();
-            Now.setMilliseconds(0);
-            const TokenRecord = await Account.IssueToken(
-                {
-                    id: '4010404006753',
-                    app_id: AppID,
-                    scopes: ['user.read', 'openid'],
-                },
-                Now
-            );
-            const result = await Account.Refresh(TokenRecord.refresh_token, Now);
-            expect(result).toStrictEqual({
-                token_type: 'Bearer',
-                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
-                expires_at: {
-                    access_token: new Date(Now.getTime() + 180 * 60000),
-                    refresh_token: new Date(Now.getTime() + 10080 * 60000),
-                    id_token: new Date(Now.getTime() + 480 * 60000),
-                },
+        describe('Sign In', () => {
+            it('With System ID', async () => {
+                const result = await Account.SignIn('4010404006753', 'password01');
+                expect(result).toBe('4010404006753');
+            });
+            it('With User ID', async () => {
+                const result = await Account.SignIn('meigetsu2020', 'password01');
+                expect(result).toBe('4010404006753');
+            });
+            it('With Mail Address', async () => {
+                const result = await Account.SignIn('info@mail.meigetsu.jp', 'password01');
+                expect(result).toBe('4010404006753');
+            });
+            it('System ID Not Found', async () => {
+                const result = await Account.SignIn('99999999', 'password01');
+                expect(result).toBeNull();
+            });
+            it('User ID Not Found', async () => {
+                const result = await Account.SignIn('notfound', 'password01');
+                expect(result).toBeNull();
+            });
+            it('Mail Address Not Found', async () => {
+                const result = await Account.SignIn('notfound@mail.meigetsu.jp', 'password01');
+                expect(result).toBeNull();
+            });
+            it('Wrong Password', async () => {
+                const result = await Account.SignIn('4010404006753', 'wrongpassword');
+                expect(result).toBeNull();
             });
         });
-        it('Create Token/No OpenID', async () => {
-            const Now = new Date();
-            Now.setMilliseconds(0);
-            const result = await Account.IssueToken({ id: '4010404006753', app_id: AppID, scopes: ['user.read'] }, Now);
-            expect(result).toStrictEqual({
-                token_type: 'Bearer',
-                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                expires_at: {
-                    access_token: new Date(Now.getTime() + 180 * 60000),
-                    refresh_token: new Date(Now.getTime() + 10080 * 60000),
-                },
+        describe('Create Token', () => {
+            it('OpenID', async () => {
+                const Now = new Date();
+                Now.setMilliseconds(0);
+                const result = await Account.IssueToken(
+                    {
+                        id: '4010404006753',
+                        app_id: AppID,
+                        scopes: ['user.read', 'openid'],
+                    },
+                    Now
+                );
+                expect(result).toStrictEqual({
+                    token_type: 'Bearer',
+                    access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                    refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                    id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
+                    expires_at: {
+                        access_token: new Date(Now.getTime() + 180 * 60000),
+                        refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                        id_token: new Date(Now.getTime() + 480 * 60000),
+                    },
+                });
+            });
+            it('No OpenID', async () => {
+                const Now = new Date();
+                Now.setMilliseconds(0);
+                const result = await Account.IssueToken({ id: '4010404006753', app_id: AppID, scopes: ['user.read'] }, Now);
+                expect(result).toStrictEqual({
+                    token_type: 'Bearer',
+                    access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                    refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                    expires_at: {
+                        access_token: new Date(Now.getTime() + 180 * 60000),
+                        refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                    },
+                });
             });
         });
-        it('Refresh Token/No OpenID', async () => {
-            const Now = new Date();
-            Now.setMilliseconds(0);
-            const TokenRecord = await Account.IssueToken(
-                {
-                    id: '4010404006753',
-                    app_id: AppID,
-                    scopes: ['user.read'],
-                },
-                Now
-            );
-            const result = await Account.Refresh(TokenRecord.refresh_token);
-            expect(result).toStrictEqual({
-                token_type: 'Bearer',
-                access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                expires_at: {
-                    access_token: new Date(Now.getTime() + 180 * 60000),
-                    refresh_token: new Date(Now.getTime() + 10080 * 60000),
-                },
+        describe('Refresh Token', () => {
+            it('OpenID', async () => {
+                const Now = new Date();
+                Now.setMilliseconds(0);
+                const TokenRecord = await Account.IssueToken(
+                    {
+                        id: '4010404006753',
+                        app_id: AppID,
+                        scopes: ['user.read', 'openid'],
+                    },
+                    Now
+                );
+                const result = await Account.Refresh(TokenRecord.refresh_token, Now);
+                expect(result).toStrictEqual({
+                    token_type: 'Bearer',
+                    access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                    refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                    id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
+                    expires_at: {
+                        access_token: new Date(Now.getTime() + 180 * 60000),
+                        refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                        id_token: new Date(Now.getTime() + 480 * 60000),
+                    },
+                });
+            });
+            it('No OpenID', async () => {
+                const Now = new Date();
+                Now.setMilliseconds(0);
+                const TokenRecord = await Account.IssueToken(
+                    {
+                        id: '4010404006753',
+                        app_id: AppID,
+                        scopes: ['user.read'],
+                    },
+                    Now
+                );
+                const result = await Account.Refresh(TokenRecord.refresh_token);
+                expect(result).toStrictEqual({
+                    token_type: 'Bearer',
+                    access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                    refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                    expires_at: {
+                        access_token: new Date(Now.getTime() + 180 * 60000),
+                        refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                    },
+                });
+            });
+            it('Invalid Refresh Token', async () => {
+                const result = await Account.Refresh('invalidrefreshtoken');
+                expect(result).toBeNull();
             });
         });
-        it('Refresh Token/Invalid Refresh Token', async () => {
-            const result = await Account.Refresh('invalidrefreshtoken');
-            expect(result).toBeNull();
-        });
-        it('Sign Out/OK', async () => {
-            const TokenRecord = await Account.IssueToken(
-                {
-                    id: '4010404006753',
-                    app_id: AppID,
-                    scopes: ['user.read'],
-                }
-            );
-            const result = await Account.SignOut(TokenRecord.access_token);
-            expect(result).toStrictEqual({ status: 200 });
-        });
-        it('Sign Out/Invalid Access Token', async () => {
-            const result = await Account.SignOut('invalidaccesstoken');
-            expect(result).toStrictEqual({ status: 404 });
+        describe('Sign Out', () => {
+            it('OK', async () => {
+                const TokenRecord = await Account.IssueToken(
+                    {
+                        id: '4010404006753',
+                        app_id: AppID,
+                        scopes: ['user.read'],
+                    }
+                );
+                const result = await Account.SignOut(TokenRecord.access_token);
+                expect(result).toStrictEqual({ status: 200 });
+            });
+            it('Invalid Access Token', async () => {
+                const result = await Account.SignOut('invalidaccesstoken');
+                expect(result).toStrictEqual({ status: 404 });
+            });
         });
     });
 });
