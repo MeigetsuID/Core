@@ -212,5 +212,20 @@ describe('Account Manager', () => {
             const result = await Account.Refresh('invalidrefreshtoken');
             expect(result).toBeNull();
         });
+        it('Sign Out/OK', async () => {
+            const TokenRecord = await Account.IssueToken(
+                {
+                    id: '4010404006753',
+                    app_id: AppID,
+                    scopes: ['user.read'],
+                }
+            );
+            const result = await Account.SignOut(TokenRecord.access_token);
+            expect(result).toStrictEqual({ status: 200 });
+        });
+        it('Sign Out/Invalid Access Token', async () => {
+            const result = await Account.SignOut('invalidaccesstoken');
+            expect(result).toStrictEqual({ status: 404 });
+        });
     });
 });
