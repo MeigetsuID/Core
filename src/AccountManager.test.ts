@@ -167,6 +167,15 @@ describe('Account Manager', () => {
                     },
                 });
             });
+            it('Invalid System ID', async () => {
+                await expect(() => Account.IssueToken({ id: '99999999', app_id: AppID, scopes: ['user.read'] })).rejects.toThrow('Invalid System ID');
+            });
+            it('Invalid App ID', async () => {
+                await expect(() => Account.IssueToken({ id: '4010404006753', app_id: 'invalidappid', scopes: ['user.read'] })).rejects.toThrow('Invalid App ID');
+            });
+            it('Invalid Virtual ID', async () => {
+                await expect(() => Account.IssueToken({ id: '4010404006753', scopes: ['user.read'] })).rejects.toThrow('Invalid Virtual ID');
+            });
         });
         describe('Refresh Token', () => {
             it('OpenID', async () => {
