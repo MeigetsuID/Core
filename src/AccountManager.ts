@@ -2,16 +2,13 @@ import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import CreateID from '@meigetsuid/idgenerator';
 import IOManager from '@meigetsuid/iomanager';
 import { AppIDPattern, SystemIDPattern, VirtualIDPattern } from './Pattern';
-import { readFile, writeFile } from 'nodeeasyfileio';
+import { writeFile } from 'nodeeasyfileio';
 import IORedis from 'ioredis';
 import { generate } from 'randomstring';
 import { CreateIDToken } from './IDToken';
 
 export default class AccountManager {
     private CorpProfileGen: CorpProfileGenerator;
-    private static readonly AgeRate = JSON.parse(readFile('./system/age_rate.json')) as {
-        age_rates: { min: number; max?: number; rate: string }[];
-    };
     constructor(
         NTAAppKey: string,
         private Account = new IOManager.Account(),
@@ -100,14 +97,9 @@ export default class AccountManager {
         if (!VIDInfo) throw new Error('Virtual ID is not found');
         const AgeRate =
             VIDInfo.account_type % 2 === 0 && VIDInfo.account_type !== 0
-                ? await fetch('http://localhost:7900/profile/' + VIDInfo.id)
+                ? await fetch(`http://localhost:7900/profile/${VIDInfo.id}/age_rate`)
                       .then(res => res.json())
-                      .then(profile => {
-                          const Target = AccountManager.AgeRate.age_rates.find(
-                              rate => rate.min <= profile.age && (rate.max ? rate.max >= profile.age : true)
-                          );
-                          return Target ? Target.rate : 'N';
-                      })
+                      .then(profile => profile.result)
                 : 'N';
         return CreateIDToken({
             virtual_id: VirtualID,
