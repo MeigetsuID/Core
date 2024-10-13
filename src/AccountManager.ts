@@ -186,7 +186,9 @@ export default class AccountManager {
         const SystemID = await this.Token.Check(AccessToken, ['user.read']);
         if (!SystemID) return { status: 401 };
         const AccountInfo = await this.Account.SGetAccount(SystemID);
-        return AccountInfo ? { status: 200, body: AccountInfo } : { status: 404 };
+        /* v8 ignore next */
+        if (!AccountInfo) throw new Error('Account is not found');
+        return { status: 200, body: AccountInfo };
     }
     public async GetByUserID(UserID: string) {
         const Result = await this.Account.GetAccount(UserID);
@@ -199,7 +201,8 @@ export default class AccountManager {
         const VirtualID = await this.Token.Check(AccessToken, ['user.write']);
         if (!VirtualID) return { status: 401 };
         const VIDInfo = await this.VirtualID.GetLinkedInformation(VirtualID);
-        if (!VIDInfo) return { status: 500 };
+        /* v8 ignore next */
+        if (!VIDInfo) throw new Error('Virtual ID is not found');
         if (newProfile.mailaddress) {
             const CacheInfo = await this.CacheMailAddress({ mailaddress: newProfile.mailaddress, id: VIDInfo.id });
             return { status: 200, body: CacheInfo };
@@ -224,7 +227,8 @@ export default class AccountManager {
         const VirtualID = await this.Token.Check(AccessToken, ['user.write']);
         if (!VirtualID) return { status: 401 };
         const AccountInfo = await this.VirtualID.GetLinkedInformation(VirtualID);
-        if (!AccountInfo) return { status: 500 };
+        /* v8 ignore next */
+        if (!AccountInfo) throw new Error('Virtual ID is not found');
         const VirtualIDs = await this.VirtualID.GetAllVirtualIDBySystemID(AccountInfo.id);
         const Apps = await this.Application.GetApps(AccountInfo.id).then(apps => apps.map(app => app.client_id));
         VirtualIDs.push(
@@ -274,10 +278,10 @@ export default class AccountManager {
                 return false;
             }),
         ];
-        return await Promise.all(Promises)
+        const Result = await Promise.all(Promises)
             .then(results => {
-                const Result = { status: results.every(result => result) ? 200 : 500 };
-                if (Result.status === 500) {
+                const Ret = results.every(result => result);
+                if (!Ret) {
                     const ErrorProcessID = results.filter(result => !result).map((_, index) => index);
                     writeFile(
                         './system/error/account/master.log',
@@ -285,11 +289,12 @@ export default class AccountManager {
                         true
                     );
                 }
-                return Result;
+                return Ret;
             })
             .catch((er: Error) => {
                 writeFile('./system/error.log', `Account Delete Error: ${AccountInfo.id} : ${er.message}\n`, true);
-                return { status: 500 };
+                return false;
             });
+        if (!Result) throw new Error('Account Delete Error');
     }
 }
