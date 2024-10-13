@@ -262,15 +262,21 @@ describe('Account Manager', () => {
                 });
                 const result = await Account.GetByAccessToken(TokenRecord.access_token);
                 expect(result).toStrictEqual({
-                    user_id: 'meigetsu2020',
-                    name: '明月',
-                    mailaddress: 'info@mail.meigetsu.jp',
-                    account_type: 0,
+                    status: 200,
+                    body: {
+                        id: '4010404006753',
+                        user_id: 'meigetsu2020',
+                        name: '明月',
+                        mailaddress: 'info@mail.meigetsu.jp',
+                        account_type: 0,
+                    },
                 });
             });
             it('Invalid Access Token', async () => {
                 const result = await Account.GetByAccessToken('invalidaccesstoken');
-                expect(result).toBeNull();
+                expect(result).toStrictEqual({
+                    status: 401,
+                });
             });
         });
     });
