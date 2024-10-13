@@ -37,7 +37,7 @@
   "dependencies": {
     "@meigetsuid/corpprofilegen": "^2.1.0-patch01",
     "@meigetsuid/idgenerator": "^2.1.0",
-    "@meigetsuid/iomanager": "^2.1.5",
+    "@meigetsuid/iomanager": "^2.1.5-patch01",
     "@meigetsusoft/hash": "^1.0.0-patch02",
     "cors": "^2.8.5",
     "express": "^4.21.0",
