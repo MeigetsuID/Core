@@ -253,5 +253,25 @@ describe('Account Manager', () => {
                 expect(result).toStrictEqual({ status: 404 });
             });
         });
+        describe('Get By Access Token', () => {
+            it('OK', async () => {
+                const TokenRecord = await Account.IssueToken({
+                    id: '4010404006753',
+                    app_id: AppID,
+                    scopes: ['user.read'],
+                });
+                const result = await Account.GetByAccessToken(TokenRecord.access_token);
+                expect(result).toStrictEqual({
+                    user_id: 'meigetsu2020',
+                    name: '明月',
+                    mailaddress: 'info@mail.meigetsu.jp',
+                    account_type: 0,
+                });
+            });
+            it('Invalid Access Token', async () => {
+                const result = await Account.GetByAccessToken('invalidaccesstoken');
+                expect(result).toBeNull();
+            });
+        });
     });
 });
