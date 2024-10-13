@@ -183,9 +183,12 @@ export default class AccountManager {
         return { status: Result ? 200 : 404 };
     }
     public async GetByAccessToken(AccessToken: string) {
-        const SystemID = await this.Token.Check(AccessToken, ['user.read']);
-        if (!SystemID) return { status: 401 };
-        const AccountInfo = await this.Account.SGetAccount(SystemID);
+        const VirtualID = await this.Token.Check(AccessToken, ['user.read']);
+        if (!VirtualID) return { status: 401 };
+        const VIDInfo = await this.VirtualID.GetLinkedInformation(VirtualID);
+        /* v8 ignore next */
+        if (!VIDInfo) throw new Error('Virtual ID is not found');
+        const AccountInfo = await this.Account.SGetAccount(VIDInfo.id);
         /* v8 ignore next */
         if (!AccountInfo) throw new Error('Account is not found');
         return { status: 200, body: AccountInfo };
