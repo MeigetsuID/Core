@@ -239,7 +239,7 @@ describe('Account Manager', () => {
                         Account.IssueToken({ id: '4010404006753', scopes: ['user.read'] })
                     ).rejects.toThrow('Invalid Virtual ID');
                 });
-            })
+            });
         });
         describe('Refresh Token', () => {
             it('OpenID', async () => {
@@ -554,7 +554,6 @@ describe('Account Manager', () => {
             });
         });
         describe('Delete Account Record', () => {
-            let DelTestAppID = '';
             beforeAll(async () => {
                 await Account.CreateForce({
                     id: '4010404006758',
@@ -564,49 +563,15 @@ describe('Account Manager', () => {
                     password: 'password01',
                     account_type: 3,
                 });
-                await AppIO.CreateApp('4010404006758', {
-                    name: 'Delete Test App',
-                    description: 'This is a test app for delete test',
-                    redirect_uri: ['https://test.meigetsu.jp/callback'],
-                    privacy_policy: 'https://test.meigetsu.jp/privacy',
-                    public: false,
-                }).then(res => {
-                    DelTestAppID = res.client_id;
-                });
             });
             it('OK', async () => {
-                const TokenRecord = await Account.IssueToken({
-                    id: '4010404006758',
-                    app_id: AppID,
-                    scopes: ['user.write'],
-                });
-                const TokenRecordForOtherAccount = await Account.IssueToken({
-                    id: '4010404006753',
-                    app_id: DelTestAppID,
-                    scopes: ['user.read'],
-                });
-                const result = await Account.Delete(TokenRecord.access_token);
+                const result = await Account.Delete('4010404006758');
                 expect(result).toStrictEqual({ status: 200 });
-                expect(await Account.GetByAccessToken(TokenRecord.access_token)).toStrictEqual({
-                    status: 401,
-                });
-                expect(await Account.GetByAccessToken(TokenRecordForOtherAccount.access_token)).toStrictEqual({
-                    status: 401,
-                });
                 expect(await Account.GetByUserID('delete_test01')).toStrictEqual({ status: 404 });
             });
-            it('Invalid Access Token', async () => {
-                const result = await Account.Delete('invalidaccesstoken');
-                expect(result).toStrictEqual({ status: 401 });
-            });
-            it('Scope Error', async () => {
-                const TokenRecord = await Account.IssueToken({
-                    id: '4010404006753',
-                    app_id: AppID,
-                    scopes: ['user.read'],
-                });
-                const result = await Account.Delete(TokenRecord.access_token);
-                expect(result).toStrictEqual({ status: 401 });
+            it('Invalid System ID', async () => {
+                const result = await Account.Delete('4010404006759');
+                expect(result).toStrictEqual({ status: 404 });
             });
         });
     });

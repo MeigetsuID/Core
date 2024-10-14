@@ -14,7 +14,6 @@ export default class AccountManager {
         private Account = new IOManager.Account(),
         private VirtualID = new IOManager.VirtualID(),
         private Token = new IOManager.Token('supervisor'),
-        private Application = new IOManager.Application(),
         private Redis = new IORedis({ db: 0 })
     ) {
         this.CorpProfileGen = new CorpProfileGenerator(NTAAppKey);
@@ -23,7 +22,6 @@ export default class AccountManager {
     [Symbol.asyncDispose]() {
         return Promise.all([
             this.Account[Symbol.asyncDispose](),
-            this.Application[Symbol.asyncDispose](),
             this.VirtualID[Symbol.asyncDispose](),
             this.Token[Symbol.asyncDispose](),
         ]);
@@ -230,91 +228,16 @@ export default class AccountManager {
         await this.Redis.del(CacheID);
         return { status: 200 };
     }
-    public async Delete(AccessToken: string) {
-        const VirtualID = await this.Token.Check(AccessToken, ['user.write']);
-        if (!VirtualID) return { status: 401 };
-        const AccountInfo = await this.VirtualID.GetLinkedInformation(VirtualID);
-        /* v8 ignore next */
-        if (!AccountInfo) throw new Error('Virtual ID is not found');
-        const VirtualIDs = await this.VirtualID.GetAllVirtualIDBySystemID(AccountInfo.id);
-        const Apps = await this.Application.GetApps(AccountInfo.id).then(apps => apps.map(app => app.client_id));
-        VirtualIDs.push(
-            ...(await Promise.all(Apps.map(AppID => this.VirtualID.GetAllVirtualIDByAppID(AppID))).then(result =>
-                result.flat()
-            ))
-        );
-        const Promises = [
-            ...VirtualIDs.map(VirtualID => {
-                return this.Token.RevokeAll(VirtualID).catch((er: Error) => {
-                    /* v8 ignore next 6 */
-                    writeFile(
-                        './system/error/token/revoke.log',
-                        `Token Revoke Error: ${VirtualID} : ${er.message}\n`,
-                        true
-                    );
-                    return false;
-                });
-            }),
-            this.VirtualID.DeleteAccount(AccountInfo.id).catch((er: Error) => {
-                /* v8 ignore next 6 */
-                writeFile(
-                    './system/error/virtualid/delete.log',
-                    `Virtual ID Delete Error: ${AccountInfo.id} : ${er.message}\n`,
-                    true
-                );
-                return false;
-            }),
-            ...Apps.map(AppID =>
-                this.VirtualID.DeleteApp(AppID).catch((er: Error) => {
-                    /* v8 ignore next 6 */
-                    writeFile(
-                        './system/error/virtualid/delete.log',
-                        `Virtual ID Delete Error: ${AppID} : ${er.message}\n`,
-                        true
-                    );
-                    return false;
-                })
-            ),
-            this.Application.DeleteApps(AccountInfo.id).catch((er: Error) => {
-                /* v8 ignore next 6 */
-                writeFile(
-                    './system/error/application/delete.log',
-                    `Application Delete Error: ${AccountInfo.id} : ${er.message}\n`,
-                    true
-                );
-                return false;
-            }),
-            this.Account.DeleteAccount(AccountInfo.id).catch((er: Error) => {
-                /* v8 ignore next 6 */
-                writeFile(
-                    './system/error/account/delete.log',
-                    `Account Delete Error: ${AccountInfo.id} : ${er.message}\n`,
-                    true
-                );
-                return false;
-            }),
-        ];
-        const Result = await Promise.all(Promises)
-            .then(results => {
-                const Ret = results.every(result => result);
-                /* v8 ignore next 8 */
-                if (!Ret) {
-                    const ErrorProcessID = results.filter(result => !result).map((_, index) => index);
-                    writeFile(
-                        './system/error/account/master.log',
-                        `Account Delete Error: ${AccountInfo.id} : ${ErrorProcessID.join(', ')}\n`,
-                        true
-                    );
-                }
-                return Ret;
-            })
-            .catch((er: Error) => {
-                /* v8 ignore next 2 */
-                writeFile('./system/error.log', `Account Delete Error: ${AccountInfo.id} : ${er.message}\n`, true);
-                return false;
-            });
-        /* v8 ignore next */
-        if (!Result) throw new Error('Account Delete Error');
-        return { status: 200 };
+    public async Delete(SystemID: string) {
+        const Result = await this.Account.DeleteAccount(SystemID).catch((er: Error) => {
+            /* v8 ignore next 6 */
+            writeFile(
+                './system/error/account/delete.log',
+                `Account Delete Error: ${SystemID} : ${er.message}\n`,
+                true
+            );
+            return false;
+        });
+        return { status: Result ? 200 : 404 };
     }
 }
