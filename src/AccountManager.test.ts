@@ -291,7 +291,166 @@ describe('Account Manager', () => {
                 });
             });
             describe('Token Reserved Expire', () => {
-                it('OpenID', async () => {
+                describe('All', () => {
+                    it('OpenID', async () => {
+                        const Now = new Date();
+                        Now.setMilliseconds(0);
+                        const TokenRecord = await Account.IssueToken(
+                            {
+                                id: '4010404006753',
+                                app_id: AppID,
+                                scopes: ['user.read', 'openid'],
+                            },
+                            Now
+                        );
+                        const result = await Account.Refresh(TokenRecord.refresh_token, Now, {
+                            access_token: 5,
+                            refresh_token: 10,
+                            id_token: 8,
+                        });
+                        expect(result).toStrictEqual({
+                            token_type: 'Bearer',
+                            access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
+                            expires_at: {
+                                access_token: new Date(Now.getTime() + 5 * 60000),
+                                refresh_token: new Date(Now.getTime() + 10 * 60000),
+                                id_token: new Date(Now.getTime() + 8 * 60000),
+                            },
+                        });
+                    });
+                    it('No OpenID', async () => {
+                        const Now = new Date();
+                        Now.setMilliseconds(0);
+                        const TokenRecord = await Account.IssueToken(
+                            {
+                                id: '4010404006753',
+                                app_id: AppID,
+                                scopes: ['user.read'],
+                            },
+                            Now
+                        );
+                        const result = await Account.Refresh(TokenRecord.refresh_token, Now, {
+                            access_token: 5,
+                            refresh_token: 10,
+                        });
+                        expect(result).toStrictEqual({
+                            token_type: 'Bearer',
+                            access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            expires_at: {
+                                access_token: new Date(Now.getTime() + 5 * 60000),
+                                refresh_token: new Date(Now.getTime() + 10 * 60000),
+                            },
+                        });
+                    });
+                });
+                describe('Only Access Token', () => {
+                    it('OpenID', async () => {
+                        const Now = new Date();
+                        Now.setMilliseconds(0);
+                        const TokenRecord = await Account.IssueToken(
+                            {
+                                id: '4010404006753',
+                                app_id: AppID,
+                                scopes: ['user.read', 'openid'],
+                            },
+                            Now
+                        );
+                        const result = await Account.Refresh(TokenRecord.refresh_token, Now, {
+                            access_token: 5,
+                        });
+                        expect(result).toStrictEqual({
+                            token_type: 'Bearer',
+                            access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
+                            expires_at: {
+                                access_token: new Date(Now.getTime() + 5 * 60000),
+                                refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                                id_token: new Date(Now.getTime() + 480 * 60000),
+                            },
+                        });
+                    });
+                    it('No OpenID', async () => {
+                        const Now = new Date();
+                        Now.setMilliseconds(0);
+                        const TokenRecord = await Account.IssueToken(
+                            {
+                                id: '4010404006753',
+                                app_id: AppID,
+                                scopes: ['user.read'],
+                            },
+                            Now
+                        );
+                        const result = await Account.Refresh(TokenRecord.refresh_token, Now, {
+                            access_token: 5,
+                        });
+                        expect(result).toStrictEqual({
+                            token_type: 'Bearer',
+                            access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            expires_at: {
+                                access_token: new Date(Now.getTime() + 5 * 60000),
+                                refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                            },
+                        });
+                    });
+                });
+                describe('Only Refresh Token', () => {
+                    it('OpenID', async () => {
+                        const Now = new Date();
+                        Now.setMilliseconds(0);
+                        const TokenRecord = await Account.IssueToken(
+                            {
+                                id: '4010404006753',
+                                app_id: AppID,
+                                scopes: ['user.read', 'openid'],
+                            },
+                            Now
+                        );
+                        const result = await Account.Refresh(TokenRecord.refresh_token, Now, {
+                            refresh_token: 10900,
+                        });
+                        expect(result).toStrictEqual({
+                            token_type: 'Bearer',
+                            access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
+                            expires_at: {
+                                access_token: new Date(Now.getTime() + 180 * 60000),
+                                refresh_token: new Date(Now.getTime() + 10900 * 60000),
+                                id_token: new Date(Now.getTime() + 480 * 60000),
+                            },
+                        });
+                    });
+                    it('No OpenID', async () => {
+                        const Now = new Date();
+                        Now.setMilliseconds(0);
+                        const TokenRecord = await Account.IssueToken(
+                            {
+                                id: '4010404006753',
+                                app_id: AppID,
+                                scopes: ['user.read'],
+                            },
+                            Now
+                        );
+                        const result = await Account.Refresh(TokenRecord.refresh_token, Now, {
+                            refresh_token: 10900,
+                        });
+                        expect(result).toStrictEqual({
+                            token_type: 'Bearer',
+                            access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
+                            expires_at: {
+                                access_token: new Date(Now.getTime() + 180 * 60000),
+                                refresh_token: new Date(Now.getTime() + 10900 * 60000),
+                            },
+                        });
+                    });
+                });
+                it('Only ID Token', async () => {
                     const Now = new Date();
                     Now.setMilliseconds(0);
                     const TokenRecord = await Account.IssueToken(
@@ -303,9 +462,7 @@ describe('Account Manager', () => {
                         Now
                     );
                     const result = await Account.Refresh(TokenRecord.refresh_token, Now, {
-                        access_token: 5,
-                        refresh_token: 10,
-                        id_token: 8,
+                        id_token: 500,
                     });
                     expect(result).toStrictEqual({
                         token_type: 'Bearer',
@@ -313,34 +470,9 @@ describe('Account Manager', () => {
                         refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
                         id_token: expect.stringMatching(/^[a-zA-Z0-9._-]+$/),
                         expires_at: {
-                            access_token: new Date(Now.getTime() + 5 * 60000),
-                            refresh_token: new Date(Now.getTime() + 10 * 60000),
-                            id_token: new Date(Now.getTime() + 8 * 60000),
-                        },
-                    });
-                });
-                it('No OpenID', async () => {
-                    const Now = new Date();
-                    Now.setMilliseconds(0);
-                    const TokenRecord = await Account.IssueToken(
-                        {
-                            id: '4010404006753',
-                            app_id: AppID,
-                            scopes: ['user.read'],
-                        },
-                        Now
-                    );
-                    const result = await Account.Refresh(TokenRecord.refresh_token, Now, {
-                        access_token: 5,
-                        refresh_token: 10,
-                    });
-                    expect(result).toStrictEqual({
-                        token_type: 'Bearer',
-                        access_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                        refresh_token: expect.stringMatching(/^[a-zA-Z0-9]{256}$/),
-                        expires_at: {
-                            access_token: new Date(Now.getTime() + 5 * 60000),
-                            refresh_token: new Date(Now.getTime() + 10 * 60000),
+                            access_token: new Date(Now.getTime() + 180 * 60000),
+                            refresh_token: new Date(Now.getTime() + 10080 * 60000),
+                            id_token: new Date(Now.getTime() + 500 * 60000),
                         },
                     });
                 });
