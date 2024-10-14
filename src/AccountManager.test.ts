@@ -298,5 +298,205 @@ describe('Account Manager', () => {
                 });
             });
         });
+        describe('Update Account Record', () => {
+            describe('No Contain Mail Address', () => {
+                beforeAll(async () => {
+                    await Account.CreateForce({
+                        id: '4010404006754',
+                        user_id: 'update_test',
+                        name: 'Update Test',
+                        mailaddress: 'update-test@mail.meigetsu.jp',
+                        password: 'password01',
+                        account_type: 2,
+                    });
+                    await Account.CreateForce({
+                        id: '4010404006755',
+                        user_id: 'update_test02',
+                        name: 'Update Test 2',
+                        mailaddress: 'update-test02@mail.meigetsu.jp',
+                        password: 'password01',
+                        account_type: 1,
+                    });
+                    await Account.CreateForce({
+                        id: '4010404006756',
+                        user_id: 'email_update01',
+                        name: 'EMail Update Test 1',
+                        mailaddress: 'update-test03@mail.meigetsu.jp',
+                        password: 'password01',
+                        account_type: 2,
+                    });
+                    await Account.CreateForce({
+                        id: '4010404006757',
+                        user_id: 'email_update02',
+                        name: 'EMail Update Test 2',
+                        mailaddress: 'update-test04@mail.meigetsu.jp',
+                        password: 'password01',
+                        account_type: 1,
+                    });
+                });
+                it('OK', async () => {
+                    const TokenRecord = await Account.IssueToken({
+                        id: '4010404006754',
+                        app_id: AppID,
+                        scopes: ['user.write'],
+                    });
+                    const result = await Account.Update(TokenRecord.access_token, {
+                        user_id: 'update_test01',
+                        name: 'Update Test 1',
+                    });
+                    expect(result).toStrictEqual({ status: 200 });
+                    expect(await Account.GetByUserID('update_test01')).toStrictEqual({
+                        status: 200,
+                        body: {
+                            user_id: 'update_test01',
+                            name: 'Update Test 1',
+                            account_type: 2,
+                        },
+                    });
+                });
+                it('Invalid Access Token', async () => {
+                    const result = await Account.Update('invalidaccesstoken', {
+                        name: 'Update Test 2',
+                    });
+                    expect(result).toStrictEqual({ status: 401 });
+                });
+                it('Scope Error', async () => {
+                    const TokenRecord = await Account.IssueToken({
+                        id: '4010404006754',
+                        app_id: AppID,
+                        scopes: ['user.read'],
+                    });
+                    const result = await Account.Update(TokenRecord.access_token, {
+                        user_id: 'update_test03',
+                        name: 'Update Test 3',
+                    });
+                    expect(result).toStrictEqual({ status: 401 });
+                });
+                it('User ID Already Exists', async () => {
+                    const TokenRecord = await Account.IssueToken({
+                        id: '4010404006754',
+                        app_id: AppID,
+                        scopes: ['user.write'],
+                    });
+                    const result = await Account.Update(TokenRecord.access_token, {
+                        user_id: 'meigetsu2020',
+                        name: 'Update Test 4',
+                    });
+                    expect(result).toStrictEqual({ status: 400 });
+                });
+                it('Is Corp', async () => {
+                    const TokenRecord = await Account.IssueToken({
+                        id: '4010404006755',
+                        app_id: AppID,
+                        scopes: ['user.write'],
+                    });
+                    const result = await Account.Update(TokenRecord.access_token, {
+                        user_id: 'update_test',
+                        name: 'Update Test 5',
+                    });
+                    expect(result).toStrictEqual({ status: 404 });
+                });
+            });
+            describe('Update Mail Address', () => {
+                it('OK/Personal', async () => {
+                    const TokenRecord = await Account.IssueToken({
+                        id: '4010404006756',
+                        app_id: AppID,
+                        scopes: ['user.read', 'user.write'],
+                    });
+                    const result = await Account.Update(TokenRecord.access_token, {
+                        mailaddress: 'new-email01@mail.meigetsu.jp',
+                    });
+                    expect(result).toStrictEqual({
+                        status: 200,
+                        body: {
+                            id: expect.stringMatching(/^\d{8}$/),
+                            expires_at: expect.any(Date),
+                        }
+                    });
+                    if (!result.body) throw new Error('Result Body is not found');
+                    const NextProcessResult = await Account.UpdateMailAddress(result.body.id);
+                    expect(NextProcessResult).toStrictEqual({ status: 200 });
+                    expect(await Account.GetByAccessToken(TokenRecord.access_token)).toStrictEqual({
+                        status: 200,
+                        body: {
+                            id: '4010404006756',
+                            user_id: 'email_update01',
+                            name: 'EMail Update Test 1',
+                            mailaddress: 'new-email01@mail.meigetsu.jp',
+                            account_type: 2,
+                        },
+                    });
+                });
+                it('OK/Corp', async () => {
+                    const TokenRecord = await Account.IssueToken({
+                        id: '4010404006757',
+                        app_id: AppID,
+                        scopes: ['user.read', 'user.write'],
+                    });
+                    const result = await Account.Update(TokenRecord.access_token, {
+                        mailaddress: 'new-email02@mail.meigetsu.jp',
+                    });
+                    expect(result).toStrictEqual({
+                        status: 200,
+                        body: {
+                            id: expect.stringMatching(/^\d{8}$/),
+                            expires_at: expect.any(Date),
+                        }
+                    });
+                    if (!result.body) throw new Error('Result Body is not found');
+                    const NextProcessResult = await Account.UpdateMailAddress(result.body.id);
+                    expect(NextProcessResult).toStrictEqual({ status: 200 });
+                    expect(await Account.GetByAccessToken(TokenRecord.access_token)).toStrictEqual({
+                        status: 200,
+                        body: {
+                            id: '4010404006757',
+                            user_id: 'email_update02',
+                            name: 'EMail Update Test 2',
+                            mailaddress: 'new-email02@mail.meigetsu.jp',
+                            account_type: 1,
+                        },
+                    });
+                });
+                it('Invalid Access Token', async () => {
+                    const result = await Account.Update('invalidaccesstoken', {
+                        mailaddress: 'new-email03@mail.meigetsu.jp',
+                    });
+                    expect(result).toStrictEqual({ status: 401 });
+                });
+                it('Scope Error', async () => {
+                    const TokenRecord = await Account.IssueToken({
+                        id: '4010404006756',
+                        app_id: AppID,
+                        scopes: ['user.read'],
+                    });
+                    const result = await Account.Update(TokenRecord.access_token, {
+                        mailaddress: 'new-email03@mail.meigetsu.jp'
+                    });
+                    expect(result).toStrictEqual({ status: 401 });
+                });
+                it('Mail Address Already Exists', async () => {
+                    const TokenRecord = await Account.IssueToken({
+                        id: '4010404006756',
+                        app_id: AppID,
+                        scopes: ['user.read', 'user.write'],
+                    });
+                    const result = await Account.Update(TokenRecord.access_token, {
+                        mailaddress: 'info@mail.meigetsu.jp',
+                    });
+                    expect(result).toStrictEqual({ status: 400 });
+                });
+                it('Invalid Cache ID', async () => {
+                    const result = await Account.UpdateMailAddress('99999999');
+                    expect(result).toStrictEqual({ status: 404 });
+                });
+                it('Cache ID is for entry', async () => {
+                    const PreEntryInfo = await Account.PreEntry('new-account01@mail.meigetsu.jp');
+                    if (typeof PreEntryInfo.body === 'string') throw new Error(PreEntryInfo.body);
+                    const result = await Account.UpdateMailAddress(PreEntryInfo.body.id);
+                    expect(result).toStrictEqual({ status: 404 });
+                });
+            });
+        });
     });
 });
