@@ -279,5 +279,24 @@ describe('Account Manager', () => {
                 });
             });
         });
+        describe('Get By User ID', () => {
+            it('OK', async () => {
+                const result = await Account.GetByUserID('meigetsu2020');
+                expect(result).toStrictEqual({
+                    status: 200,
+                    body: {
+                        user_id: 'meigetsu2020',
+                        name: '明月',
+                        account_type: 0,
+                    },
+                });
+            });
+            it('Not Found', async () => {
+                const result = await Account.GetByUserID('notfound');
+                expect(result).toStrictEqual({
+                    status: 404,
+                });
+            });
+        });
     });
 });
