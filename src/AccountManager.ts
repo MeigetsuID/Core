@@ -212,7 +212,7 @@ export default class AccountManager {
             return { status: 200, body: CacheInfo };
         } else {
             const AccountProfile = await this.Account.SGetAccount(VIDInfo.id);
-            if (!AccountProfile || AccountProfile.account_type % 2 === 0 || AccountProfile.account_type === 0)
+            if (!AccountProfile || AccountProfile.account_type % 2 === 1 || AccountProfile.account_type === 0)
                 return { status: 404 };
             await this.Account.UpdateAccount(VIDInfo.id, newProfile);
             return { status: 200 };
