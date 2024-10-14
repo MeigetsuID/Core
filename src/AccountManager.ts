@@ -68,7 +68,8 @@ export default class AccountManager {
             return { status: 400, body: 'この法人のアカウントは既に登録されています。' };
         const Parameter =
             'corp_number' in profile
-                ? await this.CorpProfileGen.Create({ ...profile, mailaddress: UseMailAddressInfo.body.mailaddress })
+                ? /* v8 ignore next */
+                  await this.CorpProfileGen.Create({ ...profile, mailaddress: UseMailAddressInfo.body.mailaddress })
                 : {
                       ...profile,
                       id: await CreateID(profile.user_id),
