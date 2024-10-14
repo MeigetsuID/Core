@@ -243,7 +243,11 @@ export default class AccountManager {
         const Promises = [
             ...VirtualIDs.map(VirtualID => {
                 return this.Token.RevokeAll(VirtualID).catch((er: Error) => {
-                    writeFile('./system/error/token/revoke.log', `${VirtualID} : ${er.message}\n`, true);
+                    writeFile(
+                        './system/error/token/revoke.log', 
+                        `Token Revoke Error: ${VirtualID} : ${er.message}\n`, 
+                        true
+                    );
                     return false;
                 });
             }),
