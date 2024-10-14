@@ -230,12 +230,8 @@ export default class AccountManager {
     }
     public async Delete(SystemID: string) {
         const Result = await this.Account.DeleteAccount(SystemID).catch((er: Error) => {
-            /* v8 ignore next 6 */
-            writeFile(
-                './system/error/account/delete.log',
-                `Account Delete Error: ${SystemID} : ${er.message}\n`,
-                true
-            );
+            /* v8 ignore next 2 */
+            writeFile('./system/error/account/delete.log', `Account Delete Error: ${SystemID} : ${er.message}\n`, true);
             return false;
         });
         return { status: Result ? 200 : 404 };
