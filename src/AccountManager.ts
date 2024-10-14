@@ -300,5 +300,6 @@ export default class AccountManager {
                 return false;
             });
         if (!Result) throw new Error('Account Delete Error');
+        return { status: 200 };
     }
 }
