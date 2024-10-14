@@ -93,7 +93,7 @@ export default class AccountManager {
     }
     private async CreateIDToken(VirtualID: string, IDTokenExpiresMin: number, IssueDate: Date = new Date()) {
         const VIDInfo = await this.VirtualID.GetLinkedInformation(VirtualID);
-        /* v8 ignore next */
+        /* v8 ignore next 6 */
         if (!VIDInfo) throw new Error('Virtual ID is not found');
         const AgeRate =
             VIDInfo.account_type % 2 === 0 && VIDInfo.account_type !== 0
