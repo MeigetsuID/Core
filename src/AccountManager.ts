@@ -201,7 +201,8 @@ export default class AccountManager {
         AccessToken: string,
         newProfile: Partial<{ user_id: string; name: string; mailaddress: string; password: string }>
     ) {
-        if (!await this.Account.Available({ user_id: newProfile.user_id, mailaddress: newProfile.mailaddress })) return { status: 400 };
+        if (!(await this.Account.Available({ user_id: newProfile.user_id, mailaddress: newProfile.mailaddress })))
+            return { status: 400 };
         const VirtualID = await this.Token.Check(AccessToken, ['user.write']);
         if (!VirtualID) return { status: 401 };
         const VIDInfo = await this.VirtualID.GetLinkedInformation(VirtualID);
@@ -244,8 +245,8 @@ export default class AccountManager {
             ...VirtualIDs.map(VirtualID => {
                 return this.Token.RevokeAll(VirtualID).catch((er: Error) => {
                     writeFile(
-                        './system/error/token/revoke.log', 
-                        `Token Revoke Error: ${VirtualID} : ${er.message}\n`, 
+                        './system/error/token/revoke.log',
+                        `Token Revoke Error: ${VirtualID} : ${er.message}\n`,
                         true
                     );
                     return false;

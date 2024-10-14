@@ -412,7 +412,7 @@ describe('Account Manager', () => {
                         body: {
                             id: expect.stringMatching(/^\d{8}$/),
                             expires_at: expect.any(Date),
-                        }
+                        },
                     });
                     if (!result.body) throw new Error('Result Body is not found');
                     const NextProcessResult = await Account.UpdateMailAddress(result.body.id);
@@ -442,7 +442,7 @@ describe('Account Manager', () => {
                         body: {
                             id: expect.stringMatching(/^\d{8}$/),
                             expires_at: expect.any(Date),
-                        }
+                        },
                     });
                     if (!result.body) throw new Error('Result Body is not found');
                     const NextProcessResult = await Account.UpdateMailAddress(result.body.id);
@@ -471,7 +471,7 @@ describe('Account Manager', () => {
                         scopes: ['user.read'],
                     });
                     const result = await Account.Update(TokenRecord.access_token, {
-                        mailaddress: 'new-email03@mail.meigetsu.jp'
+                        mailaddress: 'new-email03@mail.meigetsu.jp',
                     });
                     expect(result).toStrictEqual({ status: 401 });
                 });
@@ -510,15 +510,14 @@ describe('Account Manager', () => {
                     account_type: 3,
                 });
                 await AppIO.CreateApp('4010404006758', {
-                        name: 'Delete Test App',
-                        description: 'This is a test app for delete test',
-                        redirect_uri: ['https://test.meigetsu.jp/callback'],
-                        privacy_policy: 'https://test.meigetsu.jp/privacy',
-                        public: false,
-                    }).then(res => {
-                        DelTestAppID = res.client_id;
-                    }
-                );
+                    name: 'Delete Test App',
+                    description: 'This is a test app for delete test',
+                    redirect_uri: ['https://test.meigetsu.jp/callback'],
+                    privacy_policy: 'https://test.meigetsu.jp/privacy',
+                    public: false,
+                }).then(res => {
+                    DelTestAppID = res.client_id;
+                });
             });
             it('OK', async () => {
                 const TokenRecord = await Account.IssueToken({
