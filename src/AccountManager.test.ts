@@ -1,5 +1,6 @@
 import IOManager from '@meigetsuid/iomanager';
 import AccountManager from './AccountManager';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('Account Manager', () => {
     const Account = new AccountManager('appkey');
@@ -21,6 +22,7 @@ describe('Account Manager', () => {
             privacy_policy: 'https://test.meigetsu.jp/privacy',
             public: false,
         }).then(res => {
+            if (!res) throw new Error('App Create Error');
             AppID = res.client_id;
         });
     });
@@ -348,19 +350,34 @@ describe('Account Manager', () => {
                 });
             });
             describe('Invalid', () => {
-                it('System ID', async () => {
+                it('System ID/Pattern Error', async () => {
                     await expect(() =>
                         Account.IssueToken({ id: '99999999', app_id: AppID, scopes: ['user.read'] })
                     ).rejects.toThrow('Invalid System ID');
                 });
-                it('App ID', async () => {
+                it('System ID/Not Found', async () => {
+                    await expect(() =>
+                        Account.IssueToken({ id: '4010404006153', app_id: AppID, scopes: ['user.read'] })
+                    ).rejects.toThrow('App ID or System ID is not found');
+                });
+                it('App ID/Pattern Error', async () => {
                     await expect(() =>
                         Account.IssueToken({ id: '4010404006753', app_id: 'invalidappid', scopes: ['user.read'] })
                     ).rejects.toThrow('Invalid App ID');
                 });
-                it('Virtual ID', async () => {
+                it('App ID/Not Found', async () => {
+                    await expect(() =>
+                        Account.IssueToken({ id: '4010404006753', app_id: `app-${uuidv4().replace(/-/g, '')}`, scopes: ['user.read'] })
+                    ).rejects.toThrow('App ID or System ID is not found');
+                });
+                it('Virtual ID/Pattern Error', async () => {
                     await expect(() =>
                         Account.IssueToken({ id: '4010404006753', scopes: ['user.read'] })
+                    ).rejects.toThrow('Invalid Virtual ID');
+                });
+                it('Virtual ID/Not Found', async () => {
+                    await expect(() =>
+                        Account.IssueToken({ id: `vid-${uuidv4().replace(/-/g, '')}`, scopes: ['user.read'] })
                     ).rejects.toThrow('Invalid Virtual ID');
                 });
             });
