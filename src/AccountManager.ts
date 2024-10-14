@@ -18,7 +18,7 @@ export default class AccountManager {
     ) {
         this.CorpProfileGen = new CorpProfileGenerator(NTAAppKey);
     }
-    /* v8 ignore next 9 */
+    /* v8 ignore next 7 */
     [Symbol.asyncDispose]() {
         return Promise.all([
             this.Account[Symbol.asyncDispose](),
