@@ -244,6 +244,7 @@ export default class AccountManager {
         const Promises = [
             ...VirtualIDs.map(VirtualID => {
                 return this.Token.RevokeAll(VirtualID).catch((er: Error) => {
+                    /* v8 ignore next 6 */
                     writeFile(
                         './system/error/token/revoke.log',
                         `Token Revoke Error: ${VirtualID} : ${er.message}\n`,
@@ -253,6 +254,7 @@ export default class AccountManager {
                 });
             }),
             this.VirtualID.DeleteAccount(AccountInfo.id).catch((er: Error) => {
+                /* v8 ignore next 6 */
                 writeFile(
                     './system/error/virtualid/delete.log',
                     `Virtual ID Delete Error: ${AccountInfo.id} : ${er.message}\n`,
@@ -262,6 +264,7 @@ export default class AccountManager {
             }),
             ...Apps.map(AppID =>
                 this.VirtualID.DeleteApp(AppID).catch((er: Error) => {
+                    /* v8 ignore next 6 */
                     writeFile(
                         './system/error/virtualid/delete.log',
                         `Virtual ID Delete Error: ${AppID} : ${er.message}\n`,
@@ -271,6 +274,7 @@ export default class AccountManager {
                 })
             ),
             this.Application.DeleteApps(AccountInfo.id).catch((er: Error) => {
+                /* v8 ignore next 6 */
                 writeFile(
                     './system/error/application/delete.log',
                     `Application Delete Error: ${AccountInfo.id} : ${er.message}\n`,
@@ -279,6 +283,7 @@ export default class AccountManager {
                 return false;
             }),
             this.Account.DeleteAccount(AccountInfo.id).catch((er: Error) => {
+                /* v8 ignore next 6 */
                 writeFile(
                     './system/error/account/delete.log',
                     `Account Delete Error: ${AccountInfo.id} : ${er.message}\n`,
@@ -290,6 +295,7 @@ export default class AccountManager {
         const Result = await Promise.all(Promises)
             .then(results => {
                 const Ret = results.every(result => result);
+                /* v8 ignore next 8 */
                 if (!Ret) {
                     const ErrorProcessID = results.filter(result => !result).map((_, index) => index);
                     writeFile(
@@ -301,9 +307,11 @@ export default class AccountManager {
                 return Ret;
             })
             .catch((er: Error) => {
+                /* v8 ignore next 2 */
                 writeFile('./system/error.log', `Account Delete Error: ${AccountInfo.id} : ${er.message}\n`, true);
                 return false;
             });
+        /* v8 ignore next */
         if (!Result) throw new Error('Account Delete Error');
         return { status: 200 };
     }
