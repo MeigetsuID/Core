@@ -34,6 +34,7 @@ export default class AccountManager {
     ): Promise<{ id: string; expires_at: Date }> {
         const CacheID = generate({ length: 8, charset: 'numeric' });
         const Expire = new Date(Date.now() + expireSec * 1000);
+        /* v8 ignore next 1 */
         if (await this.Redis.exists(CacheID)) return this.CacheMailAddress(arg);
         await this.Redis.set(CacheID, JSON.stringify(arg), 'EXAT', Expire.getTime());
         return { id: CacheID, expires_at: Expire };
