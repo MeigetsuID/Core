@@ -153,7 +153,7 @@ export default class AccountManager {
             access_token: ExpiresMin.access_token,
             refresh_token: ExpiresMin.refresh_token,
         });
-        if (!Ret) throw new Error('Invalid Virtual ID')
+        if (!Ret) throw new Error('Invalid Virtual ID');
         if (arg.scopes.includes('openid')) {
             Ret['id_token'] = await this.CreateIDToken(arg.id, ExpiresMin.id_token, IssueDate);
             Ret['expires_at']['id_token'] = new Date(IssueDate.getTime() + ExpiresMin.id_token * 60000);

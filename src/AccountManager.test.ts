@@ -367,7 +367,11 @@ describe('Account Manager', () => {
                 });
                 it('App ID/Not Found', async () => {
                     await expect(() =>
-                        Account.IssueToken({ id: '4010404006753', app_id: `app-${uuidv4().replace(/-/g, '')}`, scopes: ['user.read'] })
+                        Account.IssueToken({
+                            id: '4010404006753',
+                            app_id: `app-${uuidv4().replace(/-/g, '')}`,
+                            scopes: ['user.read'],
+                        })
                     ).rejects.toThrow('App ID or System ID is not found');
                 });
                 it('Virtual ID/Pattern Error', async () => {
