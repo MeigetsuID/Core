@@ -7,14 +7,6 @@ describe('Account Manager', () => {
     const AppIO = new IOManager.Application();
     let AppID: string;
     beforeAll(async () => {
-        await Account.CreateForce({
-            id: '4010404006753',
-            user_id: 'meigetsu2020',
-            name: '明月',
-            mailaddress: 'info@mail.meigetsu.jp',
-            password: 'password01',
-            account_type: 0,
-        });
         await AppIO.CreateApp('4010404006753', {
             name: 'Test App',
             description: 'This is a test app',
