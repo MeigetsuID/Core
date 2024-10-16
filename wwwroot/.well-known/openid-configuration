@@ -13,8 +13,9 @@
         "user.write",
         "application.read",
         "application.write",
-        "mpim.read",
-        "mpim.write",
+        "personal.read",
+        "personal.check",
+        "personal.write",
         "blog.read",
         "blog.write"
     ],
