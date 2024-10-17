@@ -118,6 +118,7 @@ export default class ApplicationManager {
         if (!Record) return null;
         const AppInfo = JSON.parse(Record) as { app: string; cc: string; ccm: string; sc: string[]; id: string };
         if (AppInfo.cc !== ToHash(CodeVerifier, AppInfo.ccm)) return null;
+        await this.redis.del(`authcode-${AuthCode}`);
         return { app: AppInfo.app, id: AppInfo.id, scope: AppInfo.sc };
     }
 }

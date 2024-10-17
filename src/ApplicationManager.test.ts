@@ -536,6 +536,7 @@ describe('Application Manager', () => {
                 id: DeveloperID,
                 scope: ['user.read', 'user.write'],
             });
+            expect(await AppMgr.GetTokenIssueInformation(Record.code, 'code_challenge')).toBeNull();
         });
         it('Not Found', async () => {
             const result = await AppMgr.GetTokenIssueInformation('app-notfound', 'code_challenge');
