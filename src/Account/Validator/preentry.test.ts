@@ -1,4 +1,4 @@
-import valid from './create';
+import valid from './preentry';
 
 describe('Account Create Request Body Validator', () => {
     it('pass', () => {
