@@ -1,6 +1,6 @@
 import valid from './preentry';
 
-describe('Account Create Request Body Validator', () => {
+describe('Account Pre Entry Request Body Validator', () => {
     it('pass', () => {
         expect(valid('ren.suzumiya@mail.meigetsu.jp')).toBeTruthy();
         expect(valid('kira_yamato@mail.meigetsu.jp')).toBeTruthy();
