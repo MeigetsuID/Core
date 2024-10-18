@@ -1,7 +1,7 @@
 /* eslint-disable jest/no-commented-out-tests */
 import ApplicationManager from './ApplicationManager';
-import AccountManager from './AccountManager';
-import { AppIDPattern } from './Pattern';
+import AccountManager from '../Account/AccountManager';
+import { AppIDPattern } from '../Pattern';
 const DeveloperID = '4010404006753';
 
 describe('Application Manager', () => {
