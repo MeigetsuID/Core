@@ -7,6 +7,6 @@ const schema = {
     maxLength: 256,
 };
 
-export default function valid(mailaddress: any): boolean {
-    return ajv.compile(schema)(mailaddress);
-}
+const valid = ajv.compile(schema);
+
+export default valid;
