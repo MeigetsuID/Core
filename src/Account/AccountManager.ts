@@ -1,7 +1,7 @@
 import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import CreateID from '@meigetsuid/idgenerator';
 import IOManager from '@meigetsuid/iomanager';
-import { AppIDPattern, SystemIDPattern, VirtualIDPattern } from './Pattern';
+import { AppIDPattern, SystemIDPattern, VirtualIDPattern } from '../Pattern';
 import { writeFile } from 'nodeeasyfileio';
 import IORedis from 'ioredis';
 import { generate } from 'randomstring';
