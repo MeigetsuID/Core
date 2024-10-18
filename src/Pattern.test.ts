@@ -21,4 +21,9 @@ describe('Pattern Check', () => {
         expect(`app-${uuidv4()}`).not.toMatch(Pattern.AppIDPattern);
         expect(`app-${uuidv3('hello', uuidv3.DNS)}`).not.toMatch(Pattern.AppIDPattern);
     });
+
+    it('Mail Address', () => {
+        expect('kamioda@mail.meigetsu.jp').toMatch(Pattern.MailAddressPattern);
+        expect('mail.meigetsu.jp').not.toMatch(Pattern.MailAddressPattern);
+    });
 });
