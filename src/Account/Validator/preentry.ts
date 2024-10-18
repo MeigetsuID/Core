@@ -7,6 +7,4 @@ const schema = {
     maxLength: 256,
 };
 
-const valid = ajv.compile(schema);
-
-export default valid;
+export const valid = ajv.compile(schema);

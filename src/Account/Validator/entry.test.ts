@@ -1,4 +1,4 @@
-import valid from "./entry";
+import { valid } from "./entry";
 
 describe('Account Entry Request Body Validator', () => {
     describe('pass', () => {

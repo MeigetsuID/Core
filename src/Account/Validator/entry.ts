@@ -41,6 +41,6 @@ const schemaForCorp = {
 const validPersonal = ajv.compile(schemaForPersonal);
 const validCorp = ajv.compile(schemaForCorp);
 
-export default function valid(arg: any) {
+export function valid(arg: any) {
     return validPersonal(arg) || validCorp(arg);
 }
