@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<corporations>
+    <lastUpdateDate>2023-09-13</lastUpdateDate>
+    <count>1</count>
+    <divideNumber>1</divideNumber>
+    <divideSize>1</divideSize>
+    <corporation>
+        <sequenceNumber>1</sequenceNumber>
+        <corporateNumber>1000011000005</corporateNumber>
+        <process>01</process>
+        <correct>1</correct>
+        <updateDate>2022-05-27</updateDate>
+        <changeDate>2022-05-27</changeDate>
+        <name>明月</name>
+        <nameImageId/>
+        <kind>499</kind>
+        <prefectureName>東京都</prefectureName>
+        <cityName>港区</cityName>
+        <streetNumber>南青山２丁目２番１５号</streetNumber>
+        <addressImageId/>
+        <prefectureCode>13</prefectureCode>
+        <cityCode>003</cityCode>
+        <postCode>1070062</postCode>
+        <addressOutside/>
+        <addressOutsideImageId/>
+        <closeDate/>
+        <closeCause/>
+        <successorCorporateNumber/>
+        <changeCause/>
+        <assignmentDate>2022-05-27</assignmentDate>
+        <latest>1</latest>
+        <enName>Meigetsu</enName>
+        <enPrefectureName>Tokyo</enPrefectureName>
+        <enCityName>2-2-15,Minamiaoyama, Minato ku</enCityName>
+        <enAddressOutside/>
+        <furigana>メイゲツ</furigana>
+        <hihyoji>0</hihyoji>
+    </corporation>
+</corporations>
