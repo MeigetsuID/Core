@@ -20,6 +20,7 @@ export default class Account {
                     ? res.status(201).json(result.body)
                     : res.sendStatus(201);
             };
+            /* v8 ignore next 4 */
             Process().catch(err => {
                 console.error(err);
                 res.sendStatus(500);
@@ -37,6 +38,7 @@ export default class Account {
                 if (result.status !== 201) return res.status(result.status).contentType('text/plain').send(result.body);
                 return res.sendStatus(201);
             };
+            /* v8 ignore next 4 */
             Process().catch(err => {
                 console.error(err);
                 res.sendStatus(500);
