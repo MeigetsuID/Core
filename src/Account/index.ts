@@ -25,7 +25,7 @@ export default class Account {
                 res.sendStatus(500);
             });
         });
-        this.app.post('/:preentry_id', async (req, res) => {
+        this.app.post('/:preentry_id', express.json(), async (req, res) => {
             const Process = async () => {
                 if (!entrycheck(req.body)) return res.sendStatus(400);
                 const result = await this.AccountMgr.Entry(
