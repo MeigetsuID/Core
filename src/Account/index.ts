@@ -11,11 +11,11 @@ export default class Account {
     ) {
         this.AccountMgr = new AccountManager(NTAAppKey);
         this.app.post('/', async (req, res) => {
-            if (!preentrycheck(req.body)) return res.sendStatus(400);
+            if (!preentrycheck(req.body)) return res.status(400).contentType('text/plain').send('Invalid mail address');
             const result = await this.AccountMgr.PreEntry(req.body as string);
-            if (result.status !== 201) return res.sendStatus(result.status);
+            if (result.status !== 201) return res.status(result.status).contentType('text/plain').send(result.body);
             return process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG'
-                ? res.status(201).send(result.body)
+                ? res.status(201).json(result.body)
                 : res.sendStatus(201);
         });
         this.app.post('/:preentry_id', async (req, res) => {
