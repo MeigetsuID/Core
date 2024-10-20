@@ -12,7 +12,8 @@ export default class Account {
         this.AccountMgr = new AccountManager(NTAAppKey);
         this.app.post('/', express.text(), async (req, res) => {
             const Process = async () => {
-                if (!preentrycheck(req.body)) return res.status(400).contentType('text/plain').send('Invalid mail address');
+                if (!preentrycheck(req.body))
+                    return res.status(400).contentType('text/plain').send('Invalid mail address');
                 const result = await this.AccountMgr.PreEntry(req.body as string);
                 if (result.status !== 201) return res.status(result.status).contentType('text/plain').send(result.body);
                 return process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG'
