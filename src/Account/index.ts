@@ -14,6 +14,9 @@ export default class Account {
             if (!preentrycheck(req.body)) return res.sendStatus(400);
             const result = await this.AccountMgr.PreEntry(req.body as string);
             if (result.status !== 201) return res.sendStatus(result.status);
+            return process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG'
+                ? res.status(201).send(result.body)
+                : res.send(result.body);
         });
         this.app.post('/:preentry_id', async (req, res) => {
             if (!entrycheck(req.body)) return res.sendStatus(400);
