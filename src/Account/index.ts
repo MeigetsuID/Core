@@ -34,7 +34,7 @@ export default class Account {
                         ? (req.body as { user_id: string; corp_number: string; password: string })
                         : (req.body as { user_id: string; name: string; password: string })
                 );
-                if (result.status !== 201) return res.sendStatus(result.status);
+                if (result.status !== 201) return res.status(result.status).contentType('text/plain').send(result.body);
             };
             Process().catch(err => {
                 console.error(err);
