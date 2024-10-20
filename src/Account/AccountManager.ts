@@ -74,6 +74,7 @@ export default class AccountManager {
                       mailaddress: UseMailAddressInfo.body.mailaddress,
                       account_type: 4,
                   };
+        if (Parameter == null) return { status: 400, body: 'この法人番号は無効です' };
         await this.Account.CreateAccount(Parameter);
         await this.Redis.del(PreEntryID);
         return { status: 201 };

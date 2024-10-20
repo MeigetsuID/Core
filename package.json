@@ -35,7 +35,7 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "dependencies": {
-    "@meigetsuid/corpprofilegen": "^2.1.0-patch01",
+    "@meigetsuid/corpprofilegen": "^2.1.1-patch01",
     "@meigetsuid/idgenerator": "^2.1.0",
     "@meigetsuid/iomanager": "^2.1.7",
     "@meigetsusoft/hash": "^1.0.0-patch02",
