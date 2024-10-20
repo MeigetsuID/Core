@@ -1,6 +1,7 @@
 import { readFile } from 'nodeeasyfileio';
 import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import Account from '.';
+import { existsSync } from 'node:fs';
 
 global.fetch = jest.fn((url, options) => {
     const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : '';
@@ -8,8 +9,11 @@ global.fetch = jest.fn((url, options) => {
     if (urlString.includes('nta.go.jp')) {
         const query = new URL(urlString).searchParams.get('number');
         if (query == null) return Promise.reject('no query');
+        const xml = existsSync('./testdata/nta.go.jp/' + query + '.xml')
+            ? readFile('./testdata/nta.go.jp/' + query + '.xml')
+            : readFile('./testdata/nta.go.jp/notfound.xml');
         return Promise.resolve(
-            new Response(readFile('./testdata/nta.go.jp/' + query + '.xml'), {
+            new Response(xml, {
                 status: 200,
                 headers: {
                     'Content-Type': 'application/xml',
