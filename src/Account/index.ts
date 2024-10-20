@@ -16,7 +16,7 @@ export default class Account {
             if (result.status !== 201) return res.sendStatus(result.status);
             return process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG'
                 ? res.status(201).send(result.body)
-                : res.send(result.body);
+                : res.sendStatus(201);
         });
         this.app.post('/:preentry_id', async (req, res) => {
             if (!entrycheck(req.body)) return res.sendStatus(400);
