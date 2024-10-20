@@ -11,22 +11,34 @@ export default class Account {
     ) {
         this.AccountMgr = new AccountManager(NTAAppKey);
         this.app.post('/', express.text(), async (req, res) => {
-            if (!preentrycheck(req.body)) return res.status(400).contentType('text/plain').send('Invalid mail address');
-            const result = await this.AccountMgr.PreEntry(req.body as string);
-            if (result.status !== 201) return res.status(result.status).contentType('text/plain').send(result.body);
-            return process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG'
-                ? res.status(201).json(result.body)
-                : res.sendStatus(201);
+            const Process = async () => {
+                if (!preentrycheck(req.body)) return res.status(400).contentType('text/plain').send('Invalid mail address');
+                const result = await this.AccountMgr.PreEntry(req.body as string);
+                if (result.status !== 201) return res.status(result.status).contentType('text/plain').send(result.body);
+                return process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG'
+                    ? res.status(201).json(result.body)
+                    : res.sendStatus(201);
+            };
+            Process().catch(err => {
+                console.error(err);
+                res.sendStatus(500);
+            });
         });
         this.app.post('/:preentry_id', async (req, res) => {
-            if (!entrycheck(req.body)) return res.sendStatus(400);
-            const result = await this.AccountMgr.Entry(
-                req.params.preentry_id,
-                'corp_number' in req.body
-                    ? (req.body as { user_id: string; corp_number: string; password: string })
-                    : (req.body as { user_id: string; name: string; password: string })
-            );
-            if (result.status !== 201) return res.sendStatus(result.status);
+            const Process = async () => {
+                if (!entrycheck(req.body)) return res.sendStatus(400);
+                const result = await this.AccountMgr.Entry(
+                    req.params.preentry_id,
+                    'corp_number' in req.body
+                        ? (req.body as { user_id: string; corp_number: string; password: string })
+                        : (req.body as { user_id: string; name: string; password: string })
+                );
+                if (result.status !== 201) return res.sendStatus(result.status);
+            };
+            Process().catch(err => {
+                console.error(err);
+                res.sendStatus(500);
+            });
         });
     }
     public get App() {
