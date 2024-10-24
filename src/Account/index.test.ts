@@ -136,6 +136,36 @@ describe('Account API Test', () => {
                     });
                 expect(entryRes.status).toBe(404);
             });
+            it('Personal Object Error', async () => {
+                const preEntryRes = await request(AccountAPI.App)
+                    .post('/')
+                    .set('Content-Type', 'text/plain')
+                    .send('info3@mail.meigetsu.jp');
+                expect(preEntryRes.status).toBe(201);
+                const entryRes = await request(AccountAPI.App)
+                    .post('/' + preEntryRes.body.id)
+                    .set('Content-Type', 'application/json')
+                    .send({
+                        user_id: 'meigetsu2022',
+                        password: 'password01',
+                    });
+                expect(entryRes.status).toBe(400);
+            });
+            it('Corp Object Error', async () => {
+                const preEntryRes = await request(AccountAPI.App)
+                    .post('/')
+                    .set('Content-Type', 'text/plain')
+                    .send('info4@mail.meigetsu.jp');
+                expect(preEntryRes.status).toBe(201);
+                const entryRes = await request(AccountAPI.App)
+                    .post('/' + preEntryRes.body.id)
+                    .set('Content-Type', 'application/json')
+                    .send({
+                        user_id: 'meigetsu2022',
+                        password: 'password01',
+                    });
+                expect(entryRes.status).toBe(400);
+            });
         });
     });
 });
