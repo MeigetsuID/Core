@@ -1,3 +1,4 @@
+import request from 'supertest';
 import { readFile } from 'nodeeasyfileio';
 import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import Account from '.';
@@ -57,6 +58,83 @@ describe('Account API Test', () => {
             it('NTA API 2', async () => {
                 const res = await CPG.GetNewestName('1000011000005');
                 expect(res).toBe('国立国会図書館');
+            });
+        });
+    });
+    describe('Main Test', () => {
+        const AccountAPI = new Account('dummy');
+        describe('Entry Flow', () => {
+            it('Personal OK', async () => {
+                const preEntryRes = await request(AccountAPI.App)
+                    .post('/')
+                    .set('Content-Type', 'text/plain')
+                    .send('kamioda@mail.meigetsu.jp');
+                expect(preEntryRes.status).toBe(201);
+                if (process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG') return;
+                expect(preEntryRes.body).toStrictEqual({
+                    id: expect.stringMatching(/^\d{8}$/),
+                    expires_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/),
+                });
+                const entryRes = await request(AccountAPI.App)
+                    .post('/' + preEntryRes.body.id)
+                    .set('Content-Type', 'application/json')
+                    .send({
+                        name: 'Kamioda',
+                        user_id: 'kamioda2022',
+                        password: 'password01',
+                    });
+                expect(entryRes.status).toBe(201);
+            });
+            it('Corp OK', async () => {
+                const preEntryRes = await request(AccountAPI.App)
+                    .post('/')
+                    .set('Content-Type', 'text/plain')
+                    .send('info@ndl.go.jp');
+                expect(preEntryRes.status).toBe(201);
+                if (process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG') return;
+                expect(preEntryRes.body).toStrictEqual({
+                    id: expect.stringMatching(/^\d{8}$/),
+                    expires_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/),
+                });
+                const entryRes = await request(AccountAPI.App)
+                    .post('/' + preEntryRes.body.id)
+                    .set('Content-Type', 'application/json')
+                    .send({
+                        corp_number: '1000011000005',
+                        user_id: 'kokkai_toshokan',
+                        password: 'password01',
+                    });
+                expect(entryRes.status).toBe(201);
+            });
+            it('Mail Address Pattern Error', async () => {
+                const res = await request(AccountAPI.App)
+                    .post('/')
+                    .set('Content-Type', 'text/plain')
+                    .send('jane.doe@domain-.com');
+                expect(res.status).toBe(400);
+            });
+            it('Already used mail address', async () => {
+                const res = await request(AccountAPI.App)
+                    .post('/')
+                    .set('Content-Type', 'text/plain')
+                    .send('info@mail.meigetsu.jp');
+                expect(res.status).toBe(400);
+            });
+            it('Corp Number Error', async () => {
+                const preEntryRes = await request(AccountAPI.App)
+                    .post('/')
+                    .set('Content-Type', 'text/plain')
+                    .send('info2@mail.meigetsu.jp');
+                expect(preEntryRes.status).toBe(201);
+                const entryRes = await request(AccountAPI.App)
+                    .post('/' + preEntryRes.body.id)
+                    .set('Content-Type', 'application/json')
+                    .send({
+                        corp_number: '1010404006753',
+                        user_id: 'meigetsu2022',
+                        password: 'password01',
+                    });
+                expect(entryRes.status).toBe(404);
             });
         });
     });
