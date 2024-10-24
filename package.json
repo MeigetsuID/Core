@@ -13,7 +13,6 @@
     "coverage": "jest --coverage",
     "pretest": "run-s container:stop container:start database:wait",
     "test": "dotenv jest",
-    "posttest": "run-s container:stop",
     "prepack": "tsc --project tsconfig.release.json",
     "container:start": "docker compose up -d",
     "database:wait": "node ./DBWait.js",
