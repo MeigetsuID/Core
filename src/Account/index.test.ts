@@ -70,7 +70,7 @@ describe('Account API Test', () => {
                     .set('Content-Type', 'text/plain')
                     .send('kamioda@mail.meigetsu.jp');
                 expect(preEntryRes.status).toBe(201);
-                if (process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG') return;
+                if (!process.env.RUNNING_MODE || process.env.RUNNING_MODE.toUpperCase() !== 'DEBUG') return;
                 expect(preEntryRes.body).toStrictEqual({
                     id: expect.stringMatching(/^\d{8}$/),
                     expires_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/),
@@ -91,7 +91,7 @@ describe('Account API Test', () => {
                     .set('Content-Type', 'text/plain')
                     .send('info@ndl.go.jp');
                 expect(preEntryRes.status).toBe(201);
-                if (process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG') return;
+                if (!process.env.RUNNING_MODE || process.env.RUNNING_MODE.toUpperCase() !== 'DEBUG') return;
                 expect(preEntryRes.body).toStrictEqual({
                     id: expect.stringMatching(/^\d{8}$/),
                     expires_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/),
