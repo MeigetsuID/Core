@@ -21,7 +21,7 @@ export default class Account {
                     : res.sendStatus(201);
             };
             /* v8 ignore next 4 */
-            Process().catch(err => {
+            await Process().catch(err => {
                 console.error(err);
                 res.sendStatus(500);
             });
