@@ -18,6 +18,7 @@ export default class Account {
                 if (result.status !== 201) return res.status(result.status).contentType('text/plain').send(result.body);
                 return process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG'
                     ? res.status(201).json(result.body)
+                    /* v8 ignore next */
                     : res.sendStatus(201);
             };
             /* v8 ignore next 4 */
