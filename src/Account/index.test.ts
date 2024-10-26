@@ -167,5 +167,20 @@ describe('Account API Test', () => {
                 expect(entryRes.status).toBe(400);
             });
         });
+        describe('Get Account By User ID', () => {
+            it('OK', async () => {
+                const res = await request(AccountAPI.App).get('/meigetsu2020');
+                expect(res.status).toBe(200);
+                expect(res.body).toStrictEqual({
+                    user_id: 'meigetsu2020',
+                    name: '明月',
+                    account_type: 0,
+                });
+            });
+            it('Not Found', async () => {
+                const res = await request(AccountAPI.App).get('/notfound');
+                expect(res.status).toBe(404);
+            });
+        })
     });
 });

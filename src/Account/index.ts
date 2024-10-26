@@ -46,6 +46,19 @@ export default class Account {
                 res.sendStatus(500);
             });
         });
+        this.app.get('/:user_id', async (req, res) => {
+            const Process = async () => {
+                const result = await this.AccountMgr.GetByUserID(req.params.user_id);
+                return result.status === 200
+                    ? res.status(200).json(result.body)
+                    : res.sendStatus(result.status);
+            };
+            /* v8 ignore next 4 */
+            await Process().catch(err => {
+                console.error(err);
+                res.sendStatus(500);
+            });
+        });
     }
     public get App() {
         return this.app;
