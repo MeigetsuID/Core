@@ -502,12 +502,8 @@ describe('Application Manager', () => {
         });
     });
     describe('Get Token Issue Information', () => {
-        const Record = {
-            client_id: '',
-            code: '',
-        };
-        beforeAll(async () => {
-            const result = await AppMgr.Create(DeveloperID, {
+        it('OK', async () => {
+            const AppInfo = await AppMgr.Create(DeveloperID, {
                 name: 'name',
                 description: 'description',
                 redirect_uri: ['https://example.com/callback'],
@@ -515,10 +511,9 @@ describe('Application Manager', () => {
                 terms_of_service: 'https://example.com/tos',
                 public: true,
             });
-            if (!result) throw new Error('Failed to create app');
-            Record.client_id = result.client_id;
+            if (!AppInfo) throw new Error('Failed to create app');
             const GeneratedAuthID = await AppMgr.Auth({
-                client_id: result.client_id,
+                client_id: AppInfo.client_id,
                 scope: ['user.read', 'user.write'],
                 redirect_uri: 'https://example.com/callback',
                 code_challenge: 'code_challenge',
@@ -527,23 +522,39 @@ describe('Application Manager', () => {
             if (!GeneratedAuthID) throw new Error('Failed to auth');
             const GeneratedAuthCode = await AppMgr.CreateAuthorizationCode(GeneratedAuthID, DeveloperID);
             if (!GeneratedAuthCode) throw new Error('Failed to create auth code');
-            Record.code = GeneratedAuthCode;
-        });
-        it('OK', async () => {
-            const result = await AppMgr.GetTokenIssueInformation(Record.code, 'code_challenge');
+            const result = await AppMgr.GetTokenIssueInformation(GeneratedAuthCode, 'code_challenge');
             expect(result).toStrictEqual({
-                app: Record.client_id,
+                app: AppInfo.client_id,
                 id: DeveloperID,
                 scope: ['user.read', 'user.write'],
             });
-            expect(await AppMgr.GetTokenIssueInformation(Record.code, 'code_challenge')).toBeNull();
+            expect(await AppMgr.GetTokenIssueInformation(GeneratedAuthCode, 'code_challenge')).toBeNull();
         });
         it('Not Found', async () => {
             const result = await AppMgr.GetTokenIssueInformation('app-notfound', 'code_challenge');
             expect(result).toBeNull();
         });
         it('Code Verifier Not Match', async () => {
-            const result = await AppMgr.GetTokenIssueInformation(Record.code, 'code_challenge_not_match');
+            const AppInfo = await AppMgr.Create(DeveloperID, {
+                name: 'name',
+                description: 'description',
+                redirect_uri: ['https://example.com/callback'],
+                privacy_policy: 'https://example.com/privacy',
+                terms_of_service: 'https://example.com/tos',
+                public: true,
+            });
+            if (!AppInfo) throw new Error('Failed to create app');
+            const GeneratedAuthID = await AppMgr.Auth({
+                client_id: AppInfo.client_id,
+                scope: ['user.read', 'user.write'],
+                redirect_uri: 'https://example.com/callback',
+                code_challenge: 'code_challenge',
+                code_challenge_method: 'plain',
+            });
+            if (!GeneratedAuthID) throw new Error('Failed to auth');
+            const GeneratedAuthCode = await AppMgr.CreateAuthorizationCode(GeneratedAuthID, DeveloperID);
+            if (!GeneratedAuthCode) throw new Error('Failed to create auth code');
+            const result = await AppMgr.GetTokenIssueInformation(GeneratedAuthCode, 'code_challenge_not_match');
             expect(result).toBeNull();
         });
     });
