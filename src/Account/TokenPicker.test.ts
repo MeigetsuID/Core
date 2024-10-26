@@ -15,6 +15,6 @@ describe('Token Picker Test', () => {
         });
     });
     it('Invalid Authorization', () => {
-        expect(() => PickupToken('Invalid token')).toThrow('Invalid Authorization Header');
+        expect(PickupToken('Invalid token')).toBeNull();
     });
 });
