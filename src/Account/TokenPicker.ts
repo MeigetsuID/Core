@@ -1,5 +1,5 @@
-export type Bearer = { token_type: 'Bearer', token: string };
-export type Basic = { token_type: 'Basic', id: string, password: string };
+export type Bearer = { token_type: 'Bearer'; token: string };
+export type Basic = { token_type: 'Basic'; id: string; password: string };
 
 export default function PickupToken(AuthorizationHeader: string): Bearer | Basic | null {
     const [token_type, token] = AuthorizationHeader.split(' ');

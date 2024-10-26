@@ -18,8 +18,8 @@ export default class Account {
                 if (result.status !== 201) return res.status(result.status).contentType('text/plain').send(result.body);
                 return process.env.RUNNING_MODE && process.env.RUNNING_MODE.toUpperCase() === 'DEBUG'
                     ? res.status(201).json(result.body)
-                    /* v8 ignore next */
-                    : res.sendStatus(201);
+                    : /* v8 ignore next */
+                      res.sendStatus(201);
             };
             /* v8 ignore next 4 */
             await Process().catch(err => {
@@ -49,9 +49,7 @@ export default class Account {
         this.app.get('/:user_id', async (req, res) => {
             const Process = async () => {
                 const result = await this.AccountMgr.GetByUserID(req.params.user_id);
-                return result.status === 200
-                    ? res.status(200).json(result.body)
-                    : res.sendStatus(result.status);
+                return result.status === 200 ? res.status(200).json(result.body) : res.sendStatus(result.status);
             };
             /* v8 ignore next 4 */
             await Process().catch(err => {

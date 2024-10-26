@@ -181,6 +181,6 @@ describe('Account API Test', () => {
                 const res = await request(AccountAPI.App).get('/notfound');
                 expect(res.status).toBe(404);
             });
-        })
+        });
     });
 });
