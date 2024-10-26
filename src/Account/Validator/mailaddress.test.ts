@@ -1,4 +1,4 @@
-import { valid } from './preentry';
+import { valid } from './mailaddress';
 
 describe('Account Pre Entry Request Body Validator', () => {
     it('pass', () => {
