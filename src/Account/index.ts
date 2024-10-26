@@ -2,6 +2,7 @@ import express from 'express';
 import AccountManager from './AccountManager';
 import { valid as preentrycheck } from './Validator/preentry';
 import { valid as entrycheck } from './Validator/entry';
+import PickupToken from './TokenPicker';
 
 export default class Account {
     private AccountMgr: AccountManager;
@@ -39,6 +40,20 @@ export default class Account {
                 return result.status === 201
                     ? res.sendStatus(201)
                     : res.status(result.status).contentType('text/plain').send(result.body);
+            };
+            /* v8 ignore next 4 */
+            await Process().catch(err => {
+                console.error(err);
+                res.sendStatus(500);
+            });
+        });
+        this.app.get('/', async (req, res) => {
+            const Process = async () => {
+                if (!req.headers.authorization) return res.sendStatus(401);
+                const TokenInfo = PickupToken(req.headers.authorization);
+                if (!TokenInfo || TokenInfo.token_type !== 'Bearer') return res.sendStatus(401);
+                const result = await this.AccountMgr.GetByAccessToken(TokenInfo.token);
+                return result.status === 200 ? res.status(200).json(result.body) : res.sendStatus(result.status);
             };
             /* v8 ignore next 4 */
             await Process().catch(err => {

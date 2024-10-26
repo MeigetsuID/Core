@@ -2,7 +2,9 @@ import request from 'supertest';
 import { readFile } from 'nodeeasyfileio';
 import CorpProfileGenerator from '@meigetsuid/corpprofilegen';
 import Account from '.';
+import AccountManager from './AccountManager';
 import { existsSync } from 'node:fs';
+import ApplicationManager from '../Application/ApplicationManager';
 
 global.fetch = jest.fn((url, options) => {
     const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : '';
@@ -63,6 +65,8 @@ describe('Account API Test', () => {
     });
     describe('Main Test', () => {
         const AccountAPI = new Account('dummy');
+        const AccountMgr = new AccountManager('dummy');
+        const AppMgr = new ApplicationManager();
         describe('Entry Flow', () => {
             it('Personal OK', async () => {
                 const preEntryRes = await request(AccountAPI.App)
@@ -180,6 +184,60 @@ describe('Account API Test', () => {
             it('Not Found', async () => {
                 const res = await request(AccountAPI.App).get('/notfound');
                 expect(res.status).toBe(404);
+            });
+        });
+        describe('Get Account By Access Token', () => {
+            const AppInfo = {
+                client_id: '',
+                client_secret: '',
+            };
+            beforeAll(async () => {
+                const CreatedAppInfo = await AppMgr.Create('4010404006753', {
+                    name: 'Account Get Test App',
+                    redirect_uri: ['https://idportal.meigetsu.jp/callback'],
+                    privacy_policy: 'https://www.meigetsu.jp/privacy.html',
+                    public: false,
+                });
+                if (!CreatedAppInfo || !CreatedAppInfo.client_secret) throw new Error('Failed to create confidential app');
+                AppInfo.client_id = CreatedAppInfo.client_id;
+                AppInfo.client_secret = CreatedAppInfo.client_secret;
+            });
+            it('OK', async () => {
+                const TokenRecord = await AccountMgr.IssueToken({
+                    id: '4010404006753',
+                    app_id: AppInfo.client_id,
+                    scopes: ['supervisor'],
+                });
+                const result = await request(AccountAPI.App)
+                    .get('/')
+                    .set('Authorization', 'Bearer ' + TokenRecord.access_token)
+                    .send();
+                expect(result.status).toBe(200);
+                expect(result.body).toStrictEqual({
+                    id: '4010404006753',
+                    user_id: 'meigetsu2020',
+                    name: '明月',
+                    mailaddress: 'info@mail.meigetsu.jp',
+                    account_type: 0,
+                });
+            });
+            it('Invalid Token', async () => {
+                const result = await request(AccountAPI.App)
+                    .get('/')
+                    .set('Authorization', 'Bearer invalidtoken')
+                    .send();
+                expect(result.status).toBe(401);
+            });
+            it('No Token', async () => {
+                const result = await request(AccountAPI.App).get('/').send();
+                expect(result.status).toBe(401);
+            });
+            it('Basic Auth', async () => {
+                const result = await request(AccountAPI.App)
+                    .get('/')
+                    .set('Authorization', 'Basic NDAxMDQwNDAwNjc1MzpwYXNzd29yZDAx')
+                    .send();
+                expect(result.status).toBe(401);
             });
         });
     });
