@@ -4,7 +4,7 @@ import {
     ResApplicationInformation,
     UpdateApplicationInformation,
 } from '@meigetsuid/iomanager/dist/@types/ApplicationManager';
-import { ToHash } from '@meigetsusoft/hash';
+import { ToHashForPKCE } from '@meigetsusoft/hash';
 import IORedis from 'ioredis';
 import { readJson } from 'nodeeasyfileio';
 import { generate } from 'randomstring';
@@ -117,7 +117,7 @@ export default class ApplicationManager {
         const Record = await this.redis.get(`authcode-${AuthCode}`);
         if (!Record) return null;
         const AppInfo = JSON.parse(Record) as { app: string; cc: string; ccm: string; sc: string[]; id: string };
-        if (AppInfo.cc !== ToHash(CodeVerifier, AppInfo.ccm)) return null;
+        if (AppInfo.cc !== ToHashForPKCE(CodeVerifier, AppInfo.ccm)) return null;
         await this.redis.del(`authcode-${AuthCode}`);
         return { app: AppInfo.app, id: AppInfo.id, scope: AppInfo.sc };
     }
